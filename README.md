@@ -4,7 +4,7 @@ Announcing: Kerf for iOS—ALPHA
 
 **What is it?**
 
-Kerf is an embeddable database language for phones and tablets. It is not a replacement for row-stores like SQLite, it is column-store designed to return results quickly on problems not suited for SQLite. In many respects Kerf is like Lua, though Kerf is specifically designed for vectors and database operations. Kerf does especially well on numeric data and other data that resembles time-series, telemetry, or measurements.
+Kerf is an embeddable database language for phones and tablets. It is not a replacement for row-stores like SQLite, it is column-store designed to return results quickly on problems not suited for SQLite. In many respects Kerf is like Lua, though Kerf is specifically designed for vectors and database operations. You should be interested in Kerf if you are an iOS developer who has had to abandon features or implement workarounds because of slow database performance on the phone. 
 
 **iOS Developers:**
 
