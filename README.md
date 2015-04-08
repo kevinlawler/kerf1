@@ -473,7 +473,7 @@ You can open tables on disk via the `open_table(filepath)` call. Here it is via 
 
   The current list of possibilities is: `ymdhis` year month day hour minute second.
   
-  Note that while `minus` could be perfectly well defined as an operation on absolute STAMPs (it could return a relative stamp), at least for the time being in Kerf it throws a type error. This is easy to get around, do
+  Note that while `minus` could be perfectly well defined as an operation on absolute STAMPs (for a given reduced form, it could return a relative stamp), at least for the time being in Kerf it throws a type error. This is easy to get around, do
   
   
       2015.04.07 + 1d <= 2015.04.08
