@@ -2,17 +2,11 @@
 Announcing: Kerf for iOS—ALPHA
 ------------------------------
 
-**What is it?**
-
-Kerf is an embeddable database language for phones and tablets. It is not a replacement for row-stores like SQLite, it is a column-store designed to return results quickly on problems not suited for SQLite. In many respects Kerf is like Lua, though Kerf is specifically designed for vectors and database operations. Kerf is not Realm: Realm is designed to replace SQLite+CoreData with something easier; Kerf usually won't replace SQLite, it is a specialized tool designed to solve problems SQLite can't. You should be interested in Kerf if you are an iOS developer who has had to abandon features or implement workarounds because of database performance on the phone. Kerf is especially suited for numeric data like time-series, telemetry, and other kinds of measurements.
-
-**Why is it?**
-
-As a longtime iOS developer I've run into situation after situation where the performance of the phone and/or SQLite falls short of the feature or experience I want to build. Perhaps the first time this happened was in 2008, shortly after the launch of the App Store. I had a small database of latitude and longitude coordinates I wanted to ship with the app, for various geolocation calculations, and I simply could not get queries to run fast enough on the phone. Either you had to wait on the phone to compute, or you had to wait on the phone to query a more powerful server for help. Either way the user was staring at a spinning throbber on the phone waiting, for a result that should've been simple to compute. Most recently the problem was strings: importing a collection of unique strings from a large spreadsheet would make SQLite crawl. These kinds of problems happen so frequently that people assume phones are incapable of solving many basic computational problems. People think phones are underpowered. In fact, mobile devices are powerful, provided you use them in the right way. The point of Kerf is to make it easy to use the existing powerful hardware in mobile devices without having to revert to writing low-level code.
+Kerf is a faster database for iOS.
 
 **iOS Developers:**
 
-Here's Kerf for iOS. This is the alpha. It includes:
+Here's Kerf. This is the alpha. It includes:
 
     KerfSDK:  a drop-in API bundled as an iOS framework (later +Android/Mobile/Embedded) 
     KerfDemo: an iOS demo app so you can splice in code immediately (simulator or device)
@@ -44,6 +38,13 @@ The alpha is free and without implied warranty. The SDK currently does not expir
 
   k.concerns@gmail.com
 
+**What is it?**
+
+Kerf is an embeddable database language for phones and tablets. It is not a replacement for row-stores like SQLite, it is a column-store designed to return results quickly on problems not suited for SQLite. In many respects Kerf is like Lua, though Kerf is specifically designed for vectors and database operations. Kerf is not Realm: Realm is designed to replace SQLite+CoreData with something easier; Kerf usually won't replace SQLite, it is a specialized tool designed to solve problems SQLite can't. You should be interested in Kerf if you are an iOS developer who has had to abandon features or implement workarounds because of database performance on the phone. Kerf is especially suited for numeric data like time-series, telemetry, and other kinds of measurements.
+
+**Why is it?**
+
+As a longtime iOS developer I've run into situation after situation where the performance of the phone and/or SQLite falls short of the feature or experience I want to build. Perhaps the first time this happened was shortly after the launch of the App Store. I had a small database of latitude and longitude coordinates I wanted to ship with the app, for various geolocation calculations, and I simply could not get queries to run fast enough on the phone. Either you had to wait on the phone to compute, or you had to wait on the phone to query a more powerful server for help. Either way the user was staring at a spinning throbber on the phone waiting, for a result that should've been simple to compute. These problems still happen all the time. Most recently the problem was strings: importing a collection of unique strings from a large spreadsheet would make SQLite crawl. These kinds of problems happen so frequently that people assume phones are incapable of solving many basic computational problems. People think phones are underpowered. In fact, mobile devices are powerful, provided you use them in the right way. The point of Kerf is to make it easy to use the existing powerful hardware in mobile devices without having to revert to writing low-level code.
 
 Kerf Alpha Recipes (see if any of these fit you)
 ------------------------------------------------
