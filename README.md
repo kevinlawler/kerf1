@@ -2,7 +2,7 @@
 Announcing: Kerf for iOS—ALPHA
 ------------------------------
 
-Kerf is a faster database for iOS.
+Kerf is a faster database for iOS. It speaks JSON and SQL.
 
 **iOS Developers:**
 
