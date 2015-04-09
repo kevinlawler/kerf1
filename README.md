@@ -26,7 +26,7 @@ So it's a performance-oriented computational API for iOS apps. In marketer speak
 
 Kerf is for-profit. This will probably result in a paid production license. The target test audience for Kerf is for-profit developers and companies with iOS apps. Other testers are accepted, just be sure you are scratching your own itch.
 
-The alpha is free and without implied warranty. The SDK currently does not expire. Don't ship the alpha in production unless you're some kind of berserker. The REPL has a built-in expiration date of 7 days from compilation. This should speed turnover during testing.
+The alpha is free and without implied warranty. The SDK currently does not expire. The REPL has a built-in expiration date of 7 days from compilation. This should speed turnover during testing.
 
 **Tester Feedback:**
 
