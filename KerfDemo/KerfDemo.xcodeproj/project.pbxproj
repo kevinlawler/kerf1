@@ -7,8 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0A1C4E5C1AD55C290033D313 /* KerfSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0A1C4E5B1AD55C290033D313 /* KerfSDK.framework */; };
-		0A1C4E5E1AD55C370033D313 /* KerfSDK.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 0A1C4E5B1AD55C290033D313 /* KerfSDK.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		0A485BBB1AD858E2003E2A13 /* KerfSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0A485BB91AD858DB003E2A13 /* KerfSDK.framework */; };
+		0A485BBC1AD858E2003E2A13 /* KerfSDK.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 0A485BB91AD858DB003E2A13 /* KerfSDK.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		0A499C7B1ACDC3E800FC5CE0 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 0A499C7A1ACDC3E800FC5CE0 /* main.m */; };
 		0A499C7E1ACDC3E800FC5CE0 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 0A499C7D1ACDC3E800FC5CE0 /* AppDelegate.m */; };
 		0A499C811ACDC3E800FC5CE0 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0A499C801ACDC3E800FC5CE0 /* ViewController.m */; };
@@ -36,7 +36,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				0A1C4E5E1AD55C370033D313 /* KerfSDK.framework in Embed Frameworks */,
+				0A485BBC1AD858E2003E2A13 /* KerfSDK.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -44,7 +44,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		0A1C4E5B1AD55C290033D313 /* KerfSDK.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = KerfSDK.framework; sourceTree = "<group>"; };
+		0A485BB91AD858DB003E2A13 /* KerfSDK.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = KerfSDK.framework; sourceTree = "<group>"; };
 		0A499C751ACDC3E800FC5CE0 /* KerfDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KerfDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0A499C791ACDC3E800FC5CE0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		0A499C7A1ACDC3E800FC5CE0 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -67,7 +67,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0A1C4E5C1AD55C290033D313 /* KerfSDK.framework in Frameworks */,
+				0A485BBB1AD858E2003E2A13 /* KerfSDK.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -119,7 +119,7 @@
 		0A499C781ACDC3E800FC5CE0 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				0A1C4E5B1AD55C290033D313 /* KerfSDK.framework */,
+				0A485BB91AD858DB003E2A13 /* KerfSDK.framework */,
 				0A499C791ACDC3E800FC5CE0 /* Info.plist */,
 				0A499C7A1ACDC3E800FC5CE0 /* main.m */,
 			);
