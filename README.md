@@ -43,7 +43,7 @@ Sample Readymade Kerf Solutions
 ------------------------
 
 
-  * Quickly computing the accurate distance of latitude/longitude coordinates for 100,000 points via Haversine approximation: [See the answer on StackOverflow](http://stackoverflow.com/a/29569704/365478). SQLite is missing the basic tools (`sin`) to even start.
+  * Quickly computing the accurate distance of latitude/longitude coordinates for 100,000 points on the iPhone via Haversine approximation: [See the answer on StackOverflow](http://stackoverflow.com/a/29569704/365478). SQLite is missing the basic tools (`sin`) to even start.
 
 
 
