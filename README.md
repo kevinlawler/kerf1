@@ -22,11 +22,11 @@ Binaries should work on all applicable targets: 32/64-bit, iOS/OSX, iPhone/iPad/
 
 So it's a performance-oriented computational API for iOS apps. In marketer speak, the idea is to ship an upgrade to the phone's processor with your app.
 
-**For-Profit / Licensing:**
+**Licensing**
 
-Kerf is for-profit. This will probably result in a paid production license. The target test audience for Kerf is for-profit developers and companies with iOS apps. Other testers are accepted, just be sure you are scratching your own itch.
+The alpha is free for testing and without implied warranty. To inquire about a commercial license email: k.concerns@gmail.com
 
-The alpha is free and without implied warranty. The SDK currently does not expire. The REPL has a built-in expiration date of 7 days from compilation. This should speed turnover during testing.
+The SDK currently does not expire. The REPL has a built-in expiration date of 7 days from compilation. This should speed turnover during testing.
 
 **Tester Feedback:**
 
