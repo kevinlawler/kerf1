@@ -2,7 +2,7 @@
 Announcing: Kerf for iOS—ALPHA
 ------------------------------
 
-Kerf is a faster database for iOS. It speaks JSON and SQL.
+Kerf is a faster database for iOS. It speaks JSON and SQL. It supports the math functions, like `sqrt`, that the installed SQLite does not.
 
 **iOS Developers:**
 
