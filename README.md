@@ -644,17 +644,20 @@ There is another hypothetical advanced type called an `ATLAS`, currently postpon
   The following are all functions or reserved words that work and you can try. You can grab the full list of reserved symbols from inside Kerf by calling the "reserved()" method. Currently, the full list in the alpha is:
 
 
+    
     inf nan nil null root true false select update insert upsert delete from
     group where order limit values not hash distinct part car transpose negate
     eval reverse ident ascend index descend which enumerate floor len atom join
     mod mins times plus minus alter divide less equals greater rand take drop
     maxes match lesseq greatereq equal noteq exp unique count first last avg
     std var min max sum enlist or and explode add subtract negative string
-    flatten hashed hashed enum btree indexed indexed key primary nonnull unique
-    global globals range repeat tolower toupper ceil sqrt pow abs log ln lg
-    timing open_table now now_date now_time kerf_from_json json_from_kerf
-    reserved sleep fold refold mapdown mapright mapleft mapback reduce rereduce
-    converge reconverge self this def function if do while for else return
+    flatten hashed enum btree indexed key primary nonnull unique global globals
+    range repeat tolower toupper pow abs ceil sqrt ln log lg sin cos tan asin
+    acos atan sinh cosh tanh timing now now_date now_time kerf_from_json
+    json_from_kerf reserved sleep open_table read_from_path write_to_path fold
+    refold mapdown mapright mapleft mapback reduce rereduce converge reconverge
+    self this def function if do while for else return 
+
 
 
   These all work, with a few exceptions, but are mostly not yet documented.
