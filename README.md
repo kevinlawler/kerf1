@@ -46,24 +46,34 @@ Kerf is an embeddable database language for phones and tablets. It is not a repl
 
 As a longtime iOS developer I've run into situation after situation where the performance of the phone and/or SQLite falls short of the feature or experience I want to build. Perhaps the first time this happened was shortly after the launch of the App Store. I had a small database of latitude and longitude coordinates I wanted to ship with the app, for various geolocation calculations, and I simply could not get queries to run fast enough on the phone. Either you had to wait on the phone to compute, or you had to wait on the phone to query a more powerful server for help. Either way the user was staring at a spinning throbber on the phone waiting, for a result that should've been simple to compute. These problems still happen all the time. Most recently the problem was strings: importing a collection of unique strings from a large spreadsheet would make SQLite crawl. These kinds of problems happen so frequently that people assume phones are incapable of solving many basic computational problems. People think phones are underpowered. In fact, mobile devices are powerful, provided you use them in the right way. The point of Kerf is to make it easy to use the existing powerful hardware in mobile devices without having to revert to writing low-level code.
 
-Kerf Alpha Recipes (see if any of these fit you)
+Readymade Kerf Solutions
+------------------------
+
+
+  * Quickly computing the accurate distance of latitude/longitude coordinates for 100,000 points via Haversine approximation: [See the answer on StackOverflow](http://stackoverflow.com/a/29569704/365478). SQLite is missing the basic tools (`sin`) to even start.
+
+
+
+Kerf Example Users (see if any of these fit you)
 ------------------------------------------------
 
 
  1. I need an embedded scripting language to speed up development on the phone
  2. I need more than SQLite: my inserts are too slow or my simple queries are too slow
- 3. I need to run complicated queries and I want them to run fast on the device
- 4. I need to record a lot of events: either from an accelerometer, or a GPS, or a network connection, or a thermometer, or a gyroscope, or a heart monitor, or a pedometer, or a microphone, or a tachometer, ...
- 5. I need time-series support on mobile
- 6. I need to dynamically build a big database on the phone
- 7. I need to perform heavy numeric or scientific calculations and my existing language (Obj-C/Java/&c) is wrong for that
- 8. I am a licensed data scientist and I need to perform board-certified data science on this phone
- 9. I have a big existing database that I want to ship with my app 
- 10. I want data to serialize automatically for easier storage and retrieval
- 11. I want to avoid network round trips for computations I should be able to do on the phone
- 12. I want improved SQL support to make better sense of SQL errors
- 13. I want to mix SQL and JSON
+ 3. I need sqrt, sin, pow, or other math operations, and stock SQLite doesn't support them
+ 4. I need to run complicated queries and I want them to run fast on the device
+ 5. I need to record a lot of events: either from an accelerometer, or a GPS, or a network connection, or a thermometer, or a gyroscope, or a heart monitor, or a pedometer, or a microphone, or a tachometer, ...
+ 6. I need time-series support on mobile
+ 7. I need to dynamically build a big database on the phone
+ 8. I need to perform heavy numeric or scientific calculations and my existing language (Obj-C/Java/&c) is wrong for that
+ 9. I am a licensed data scientist and I need to perform board-certified data science on this phone
+ 10. I have a big existing database that I want to ship with my app 
+ 11. I want data to serialize automatically for easier storage and retrieval
+ 12. I want to avoid network round trips for computations I should be able to do on the phone
+ 13. I want improved SQL support to make better sense of SQL errors
+ 14. I want to mix SQL and JSON
  
+
 How to Install and Use the Kerf SDK/API Framework for iOS
 ---------------------------------------------------------
 
