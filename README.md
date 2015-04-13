@@ -24,13 +24,13 @@ So it's a performance-oriented computational API for iOS apps. In marketer speak
 
 **Licensing**
 
-The alpha is free for testing and without implied warranty. To inquire about a commercial license email: k.concerns@gmail.com
+The alpha is free for testing and without implied warranty. To inquire about a commercial license email: k.concerns@gmail.com For the time being, most testers will probably be granted per-app lifetime free licenses, to encourage testing.
 
 The SDK currently does not expire. The REPL has a built-in expiration date of 7 days from compilation. This should speed turnover during testing.
 
 **Tester Feedback:**
 
-  Post feedback here as issues or send mail privately to k.concerns@gmail.com. The intent is to provide some form of consideration to select testers, possibly free versions or discounts for the commercial production release.
+  Post feedback here as issues or send mail privately to k.concerns@gmail.com. 
 
   Please test Kerf and share what you find. Please share bugs and desired use cases. There are lots of ways to develop or optimize from here and user feedback will move Kerf in the right direction. The point of an alpha is to escape development vacuum. 
   
