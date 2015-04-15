@@ -24,9 +24,7 @@ So it's a performance-oriented computational API for iOS apps. In marketer speak
 
 **Licensing**
 
-The alpha is free for testing and without implied warranty. To inquire about a commercial license email: k.concerns@gmail.com For the time being, most testers will probably be granted per-app lifetime free licenses, to encourage testing.
-
-The SDK currently does not expire. The REPL has a built-in expiration date of 7 days from compilation. This should speed turnover during testing.
+The alpha is free for testing and without implied warranty. Testers may inquire about free commercial licenses. To request a free license, or to inquire about a paid commercial license email: k.concerns@gmail.com 
 
 **Tester Feedback:**
 
