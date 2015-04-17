@@ -505,6 +505,23 @@ You can open tables on disk via the `open_table(filepath)` call. Here it is via 
   
 The reason you might want to avoid producing relative times is that the full range of useful relative dates and times exceeds a 64-bit width and so is not vectorized.
   
+To extract individual parts from times, use  
+
+  
+    a: 2015.03.16T04:05:06.7890123456
+    a: [a, a] //optional, to see how it works in vector form
+    
+    a['date']
+    a['time']
+    a['year']
+    a['month']
+    a['day']
+    a['hour']
+    a['minute']
+    a['second']
+    a['millisecond']
+    a['nanosecond'] 
+    
   
 **SQL (SELECT)**
 
