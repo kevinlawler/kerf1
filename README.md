@@ -511,10 +511,10 @@ To extract individual parts from times, use
     a: 2015.03.16T04:05:06.7890123456
     a: [a, a] //optional, to see how it works in vector form
     
-    a['date']
-    a['time']
-    a['year']
-    a['month']
+    a['date']   //stamp
+    a['time']   //stamp
+    a['year']   //int
+    a['month'] 
     a['day']
     a['hour']
     a['minute']
