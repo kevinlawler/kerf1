@@ -1,134 +1,16 @@
 
-Announcing: Kerf for iOS—ALPHA
-------------------------------
+What is Kerf?
+-------------
 
-Kerf is a faster database for iOS. It speaks JSON and SQL. It supports the math functions, like `sqrt`, that the installed SQLite does not.
+Kerf is a columnar tick database for Linux/OSX/BSD. It is written in C and speaks JSON and SQL.
 
-**iOS Developers:**
-
-Here's Kerf. This is the alpha. It includes:
-
-    KerfSDK:  a drop-in API bundled as an iOS framework (later +Android/Mobile/Embedded) 
-    KerfDemo: an iOS demo app so you can splice in code immediately (simulator or device)
-    KerfREPL: developer's CLI executable for the OS X terminal. Shortens the feedback loop.
-    
-Binaries should work on all applicable targets: 32/64-bit, iOS/OSX, iPhone/iPad/iPod, Simulator/Device, ...
-
-**Kerf adds:**
-
-      i.) a scripting language + inline JSON
-     ii.) a columnar database  + inline SQL
-    iii.) "faster processing" (vector operations)
-
-So it's a performance-oriented computational API for iOS apps. In marketer speak, the idea is to ship an upgrade to the phone's processor with your app.
-
-**Licensing**
-
-The alpha is free for testing and without implied warranty. Testers may inquire about free commercial licenses. To request a free license, or to inquire about a paid commercial license email: k.concerns@gmail.com 
-
-**Tester Feedback:**
-
-  Post feedback here as issues or send mail privately to k.concerns@gmail.com. 
-
-  Please test Kerf and share what you find. Please share bugs and desired use cases. There are lots of ways to develop or optimize from here and user feedback will move Kerf in the right direction. The point of an alpha is to escape development vacuum. 
-  
 **Contact Kevin:**
 
   k.concerns@gmail.com
 
-
-Sample Readymade Kerf Solutions
-------------------------
-
-
-  * Quickly computing the accurate distance of latitude/longitude coordinates for 100,000 points on the iPhone via Haversine approximation: [See the answer on StackOverflow](http://stackoverflow.com/a/29569704/365478). SQLite is missing the basic tools (`sin`) to even start.
-
-
-
-Kerf Example Users (see if any of these fit you)
-------------------------------------------------
-
- 1. I need an embedded scripting language to speed up development on the phone
- 2. I need more than SQLite: my inserts are too slow or my simple queries are too slow
- 3. I need sqrt, sin, pow, or other math operations, and stock SQLite doesn't support them
- 4. I need to run complicated queries and I want them to run fast on the device
- 5. I need to record a lot of events: either from an accelerometer, or a GPS, or a network connection, or a thermometer, or a gyroscope, or a heart monitor, or a pedometer, or a microphone, or a tachometer, ...
- 6. I need time-series support on mobile
- 7. I need to dynamically build a big database on the phone
- 8. I need to perform heavy numeric or scientific calculations and my existing language (Obj-C/Java/&c) is wrong for that
- 9. I am a licensed data scientist and I need to perform board-certified data science on this phone
- 10. I have a big existing database that I want to ship with my app 
- 11. I want data to serialize automatically for easier storage and retrieval
- 12. I want to avoid network round trips for computations I should be able to do on the phone
- 13. I want improved SQL support to make better sense of SQL errors
- 14. I want to mix SQL and JSON
- 
-
-**What is it?**
-
-Kerf is an embeddable database language for phones and tablets. It is not a replacement for row-stores like SQLite, it is a column-store designed to return results quickly on problems not suited for SQLite. In many respects Kerf is like Lua, though Kerf is specifically designed for vectors and database operations. Kerf is not Realm: Realm is designed to replace SQLite+CoreData with something easier; Kerf usually won't replace SQLite, it is a specialized tool designed to solve problems SQLite can't. You should be interested in Kerf if you are an iOS developer who has had to abandon features or implement workarounds because of database performance on the phone. Kerf is especially suited for numeric data like time-series, telemetry, and other kinds of measurements.
-
-**Why is it?**
-
-As a longtime iOS developer I've run into situation after situation where the performance of the phone and/or SQLite falls short of the feature or experience I want to build. Perhaps the first time this happened was shortly after the launch of the App Store. I had a small database of latitude and longitude coordinates I wanted to ship with the app, for various geolocation calculations, and I simply could not get queries to run fast enough on the phone. Either you had to wait on the phone to compute, or you had to wait on the phone to query a more powerful server for help. Either way the user was staring at a spinning throbber on the phone waiting, for a result that should've been simple to compute. These problems still happen all the time. Most recently the problem was strings: importing a collection of unique strings from a large spreadsheet would make SQLite crawl. These kinds of problems happen so frequently that people assume phones are incapable of solving many basic computational problems. People think phones are underpowered. In fact, mobile devices are powerful, provided you use them in the right way. The point of Kerf is to make it easy to use the existing powerful hardware in mobile devices without having to revert to writing low-level code.
-
-
-How to Install and Use the Kerf SDK/API Framework for iOS
----------------------------------------------------------
-
-![Installing KerfSDK](https://github.com/kevinlawler/kerf/raw/master/install-sdk.gif)
-
-  0. (The demo project already has these changes applied and does not need the process below.)
-  1. Drag and drop the file named `KerfSDK.framework` into your project's tree in the Navigator pane of Xcode.
-  2. **Add the framework via '+' to Targets -> [My_Target] -> General -> Embedded Binaries**. If you skip this step you'll get a `dyld: Library not loaded` crash. If you know how to automate or eliminate this step please tell me.
-  3. Verify the framework appears in Targets -> [My_Target] -> General -> Linked Frameworks and Binaries
-  4. Add `#import <KerfSDK/KerfSDK.h>` to a relevant .h file in your project.
-  5. Verify the KerfSDK is working by running the code:
-<pre><code>KSKerfSDK *kerf = [KSKerfSDK new];
-NSLog(@"Kerfsay: %@", [kerf eval:@"1+1"]);
-</code></pre>
-
-The KerfSDK framework contains a universal binary that is compatible with all 32/64-bit devices and simulators.
-
-How to Install and Use the Kerf REPL for OS X
----------------------------------------------------------------
-
-![REPL](https://github.com/kevinlawler/kerf/raw/master/repl-header.png)
-
-From the OS X Terminal:
-
-    cd KerfREPL
-    ./kerf-repl
-    
-This is a universal binary. It will typically run in 64-bit mode. To specify a mode:
-
-    arch -32 ./kerf-repl 
-    arch -64 ./kerf-repl 
-    
-
-Alpha Updates
--------------
-
-**Communication**
-
- If you want me to notify you about updates or news, send me an email at k.concerns@gmail.com. Another way to follow updates is to "Watch" the project by clicking the "Watch" button at the top right of the GitHub page.
+If you want me to notify you about updates or news, send me an email at k.concerns@gmail.com. Another way to follow updates is to "Watch" the project by clicking the "Watch" button at the top right of the GitHub page.
 
 ![let's watch](https://github.com/kevinlawler/kerf/raw/master/watch.gif)
-
-**Alpha Update Log:**
-
-None yet.
-
-**Known issues with the Alpha:**
-
-  0. Generic File I/O support is limited: pass data over the api where applicable
-  0. Pretty printing is ugly in the REPL: will fix at some point to a pretty tabular format
-  0. OS X REPL is limited (no multi-line input, scripts, etc.): disabled for now to head off feature creep. 
-  0. No way for user to examine bytecode / save compilation. High probability bytecode will be breaking before production release.
-  0. SQL has INSERT and SELECT. It does not yet have UPDATE or DELETE. The reason is mundane: parser/compiler code doesn't exist yet.
-  0. The format for "indexed arrays" is a placeholder and will be breaking/changing, projected to happen by the beta.
-  0. Specialized bytecode is missing so control statements like do(10){1+1} are slow at the moment.
-  
 
 Whirlwind Language Guide:
 -------------------------
