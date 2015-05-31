@@ -1,6 +1,0 @@
-framework module KerfSDK {
-  umbrella header "KerfSDK.h"
-
-  export *
-  module * { export * }
-}
