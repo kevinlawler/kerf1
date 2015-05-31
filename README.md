@@ -1,3 +1,4 @@
+![REPL](https://github.com/kevinlawler/kerf/raw/master/repl-header.png)
 
 What is Kerf?
 -------------
@@ -7,10 +8,6 @@ Kerf is a columnar tick database for Linux/OSX/BSD. It is written in C and speak
 **Contact Kevin:**
 
   k.concerns@gmail.com
-
-If you want me to notify you about updates or news, send me an email at k.concerns@gmail.com. Another way to follow updates is to "Watch" the project by clicking the "Watch" button at the top right of the GitHub page.
-
-![let's watch](https://github.com/kevinlawler/kerf/raw/master/watch.gif)
 
 Whirlwind Language Guide:
 -------------------------
