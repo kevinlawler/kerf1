@@ -3,7 +3,7 @@
 What is Kerf?
 -------------
 
-Kerf is a columnar tick database for Linux/OSX/BSD. It is written in C and speaks JSON and SQL.
+Kerf is a columnar tick database for Linux/OSX/iOS/BSD. It is written in C and speaks JSON and SQL.
 
 **Contact Kevin:**
 
