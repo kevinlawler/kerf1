@@ -527,7 +527,7 @@ An `index` is like an array except with an attached b-tree. This can make lookup
 
 Lambdas are also a type which can be stored.
 
-There is another hypothetical advanced type called an `ATLAS`, currently postponed, which is the schemaless NoSQL equivalent of a table. If this sounds useful to you, please send feedback. Atlases are automatically indexed in such a way that all key-queries are indexed. 
+There is another hypothetical advanced type called an `ATLAS`, which is the schemaless NoSQL equivalent of a table. Atlases are automatically indexed in such a way that all key-queries are indexed. 
 
 **CONTROL FLOW**
 
