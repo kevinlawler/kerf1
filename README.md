@@ -619,7 +619,8 @@ Examples for average, standard deviation, and variance (avg, std, var).
   Internally, Kerf uses reference counting. Kerf does not garbage collect. Kerf
   uses copy-on-write. Kerf uses a memory pool, so warmed operations are faster.
   Kerf does not expose pointers. It does not use globally interned strings.
-  Kerf data structures use optimized hash tables and b-trees. All Kerf objects
-  serialize automatically and use the same [decompressed] representation
-  in-memory, on-disk, and over the network. By default the PRNG is initialized
-  with a nondeterministic seed. By default times are UTC.
+  Certain objects will intern strings locally. Kerf data structures use
+  optimized hash tables and b-trees. All Kerf objects serialize automatically
+  and use the same [decompressed] representation in-memory, on-disk, and over
+  the network. By default the PRNG is initialized with a nondeterministic seed.
+  By default times are UTC.
