@@ -529,6 +529,45 @@ Lambdas are also a type which can be stored.
 
 There is another hypothetical advanced type called an `ATLAS`, which is the schemaless NoSQL equivalent of a table. Atlases are automatically indexed in such a way that all key-queries are indexed. 
 
+**INTERPROCESS COMMUNICATION**
+
+Kerf instances are designed to be networked. The data structures serialize directly without any intermediate conversion.
+
+To start a Kerf server on port 1234 execute the command:
+
+    ./kerf -p 1234
+
+You can communicate with this instance either via a Kerf client or via the Kerf SDK/API from another program (e.g., Python or Java or Objective-C).
+
+A client can be a plain old Kerf instance:
+
+    ./kerf
+  
+In the client paste each of the lines individually:
+    
+    socket: open_socket("localhost","1234")
+
+    send_async(socket, "table: {{sym:hash[], time:[], price:[]}}")
+
+    do(100) {send_async(socket, "insert into table values {sym:$1, time:$2, price:$3}", [rand(["AAPL","MSFT","IBM"]), now(),  20.0 + rand(10.0) ])}
+    
+    
+Then in the server execute:
+
+    root
+    
+    table
+    
+    select avg(price) from table group by sym
+  
+    
+Then in the client execute
+
+    close_socket(socket)
+
+Currently IPC requires the user to store the socket handle. Probably what will happen is we will remove this and have all IPC calls use the server and port. It would be simple for Kerf to manage a hashtable of hosts and ports pointing to socket handles, and to keep or refresh them as necessary, and so we should probably do that.
+
+
 **CONTROL FLOW**
 
   Control flow is designed to be as generic as possible. You probably don't need it yet, but Kerf uses: 
