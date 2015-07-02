@@ -5,6 +5,8 @@ What is Kerf?
 
 Kerf is a columnar tick database for Linux/OSX/BSD/iOS/Android. It is written in C and speaks JSON and SQL.
 
+See Kerf on TimeStored: http://www.timestored.com/time-series-data/kerf-database
+
 **Contact Kevin (e.g., licensing, feature/documentation requests):**
 
   k.concerns@gmail.com
