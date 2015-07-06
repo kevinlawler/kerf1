@@ -5,8 +5,6 @@ What is Kerf?
 
 Kerf is a columnar tick database for Linux/OSX/BSD/iOS/Android. It is written in C and speaks JSON and SQL.
 
-See Kerf on TimeStored: http://www.timestored.com/time-series-data/kerf-database
-
 **Contact Kevin (e.g., licensing, feature/documentation requests):**
 
   k.concerns@gmail.com
@@ -296,12 +294,13 @@ Some operations yield array-wise results.
       {{id:id, time:time, brightness:brightness}}
 
 
-  They are all pretty printed [ugly in the alpha] as
+  They are all printed as
 
-
-    |id|time|brightness|
-    [1, 2015.04.01T00:45:15.598, 48.6]
-
+    ┌──┬───────────────────────┬──────────┐
+    │id│time                   │brightness│
+    ├──┼───────────────────────┼──────────┤
+    │ 1│2015.07.06T16:23:50.509│      48.6│
+    └──┴───────────────────────┴──────────┘
 
   SQL inserts and updates are forms of assignment: they are always "saved". Bulk inserts are much faster than single inserts. The columns id, time, and brightness are vectorized as INT, STAMP, and FLOAT vectors respectively. The preceding tables all exist in-memory only.
   
@@ -454,13 +453,30 @@ To extract individual parts from times, use
     running: {{id: ids, stamp: stamps, heartrate: heartrates, lane: lanes}} 
 
 
+    ┌──┬───────────────────────┬─────────┬────┐
+    │id│stamp                  │heartrate│lane│
+    ├──┼───────────────────────┼─────────┼────┤
+    │ 1│2015.07.06T16:24:55.543│  96.4771│   0│
+    │ 2│2015.07.06T16:24:56.543│  107.397│   1│
+    │ 3│2015.07.06T16:24:57.543│  108.356│   2│
+    │ 4│2015.07.06T16:24:58.543│  92.2126│   3│
+    │ 5│2015.07.06T16:24:59.543│  125.115│   4│
+    │ 6│2015.07.06T16:25:00.543│  161.533│   5│
+    │ 7│2015.07.06T16:25:01.543│  175.726│   5│
+    │ 8│2015.07.06T16:25:02.543│  118.177│   4│
+    │..│                     ..│      .. │  ..│
+    └──┴───────────────────────┴─────────┴────┘
+
+
   Someone is running a zigzag across a six-lane track with a random heartbeat. This is not exactly realistic data but let's go with it. We can count the number of rows in the table:
 
 
     select count(*) as rows from running
-    |rows|
-    [10000]
-
+    ┌─────┐
+    │rows │
+    ├─────┤
+    │10000│
+    └─────┘
 
 And there's no reason we can't run SQL inside of JSON:
 
@@ -478,19 +494,23 @@ And there's no reason we can't run SQL inside of JSON:
 
 
     first(3, running)
-      |id|stamp|heartrate|lane|
-      [1, 2015.04.01T19:13:33.917, 96.4771, 0]
-      [2, 2015.04.01T19:13:34.917, 107.397, 1]
-      [3, 2015.04.01T19:13:35.917, 108.356, 2]
-  
-  
+    ┌──┬───────────────────────┬─────────┬────┐
+    │id│stamp                  │heartrate│lane│
+    ├──┼───────────────────────┼─────────┼────┤
+    │ 1│2015.07.06T16:24:55.543│  96.4771│   0│
+    │ 2│2015.07.06T16:24:56.543│  107.397│   1│
+    │ 3│2015.07.06T16:24:57.543│  108.356│   2│
+    └──┴───────────────────────┴─────────┴────┘
+
   Get the bounds on the time:
 
 
     select first(stamp), last(stamp) from running
-      |stamp|stamp1|
-      [2015.04.01T19:13:33.917, 2015.04.01T22:00:12.917]
-
+    ┌───────────────────────┬───────────────────────┐
+    │stamp                  │stamp1                 │
+    ├───────────────────────┼───────────────────────┤
+    │2015.07.06T16:24:55.543│2015.07.06T19:11:34.543│
+    └───────────────────────┴───────────────────────┘
 
   Alternatively
 
@@ -503,29 +523,36 @@ And there's no reason we can't run SQL inside of JSON:
 
 
     select avg(heartrate) from running where heartrate > 100 group by lane
-      |lane|heartrate|
-      [1, 139.192]
-      [2, 140.283]
-      [4, 139.772]
-      [5, 140.244]
-      [3, 140.167]
-      [0, 138.541]
+    ┌────┬─────────┐
+    │lane│heartrate│
+    ├────┼─────────┤
+    │   1│  139.192│
+    │   2│  140.283│
+    │   4│  139.772│
+    │   5│   140.24│
+    │   3│  140.167│
+    │   0│  138.541│
+    └────┴─────────┘
 
   Nested subqueries:
   
   
     select * from (select avg(heartrate) from running where heartrate > 100 group by lane) where heartrate = max(heartrate)
-      |lane|heartrate|
-      [2, 140.283]
-
+    ┌────┬─────────┐
+    │lane│heartrate│
+    ├────┼─────────┤
+    │   2│  140.283│
+    └────┴─────────┘
 
   We can store the results of queries in other variables.
 
 
     b: select max(heartrate) from running where lane = 2
-      |heartrate|
-      [179.952]
-
+    ┌─────────┐
+    │heartrate│
+    ├─────────┤
+    │  179.976│
+    └─────────┘
 
   And retrieve the cell value only like so:
   
@@ -605,6 +632,7 @@ Then in the client execute
 
 Currently IPC requires the user to store the socket handle. Probably what will happen is we will remove this and have all IPC calls use the server and port. It would be simple for Kerf to manage a hashtable of hosts and ports pointing to socket handles, and to keep or refresh them as necessary, and so we should probably do that.
 
+See a longer exposition of this topic on TimeStored: http://www.timestored.com/time-series-data/kerf-database
 
 **CONTROL FLOW**
 
