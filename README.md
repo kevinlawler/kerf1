@@ -348,7 +348,7 @@ will load a file that looks like:
 
 as so:
 
-    KeRF> t: read_table_from_csv('stats19.csv', 'SFI', 1)
+    KeRF> t: read_table_from_csv('my_logs01.csv', 'SFI', 1)
     ┌─────┬─────────┬────┐
     │Racer│Max Speed│Wins│
     ├─────┼─────────┼────┤
