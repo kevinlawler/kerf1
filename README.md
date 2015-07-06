@@ -327,6 +327,42 @@ You can open tables on disk via the `open_table(filepath)` call. Here it is via 
 
   Modifications to the variable cause the inserts to persist to the disk. They will be there the next time you open the table. Most variables in Kerf use reference counting or copy-on-write to ensure uniqueness. Mapped values like opened tables are different: all reference the same open item. Changes to one affect the other.
 
+**CSV LOADING**
+
+Loading CSVs into tables should be easy. The function for reading a CSV into an in-memory table is `read_table_from_csv`, and it is used in this way:
+
+    read_table_from_csv(csv_file, fields, header_rows)
+    
+so that
+
+    csv_file: 'my_logs01.csv'
+    fields: 'SFI'
+    header_rows: 1
+    table: read_table_from_csv(csv_file, fields, header_rows)
+    
+will load a file that looks like:
+
+    Racer, Max Speed, Wins
+    Mario, 30.01, 10
+    Luigi, 28.02, 12
+    Toad,  25.00,  7
+
+as so:
+
+    KeRF> t: read_table_from_csv('stats19.csv', 'SFI', 1)
+    ┌─────┬─────────┬────┐
+    │Racer│Max Speed│Wins│
+    ├─────┼─────────┼────┤
+    │Mario│    30.01│  10│
+    │Luigi│    28.02│  12│
+    │ Toad│     25.0│   7│
+    └─────┴─────────┴────┘
+
+The currently supported list of field identifiers is "IFSEGNZ" integers floats strings enumerated-strings guids/uuids ips custom-datetime. IP addresses are converted to integers using inet_pton. The custom datetime parser format is set like this
+
+    .Parse.strptime_format:'%d-%b-%y %H:%M:%S'  //format for 'Z'
+
+and relies directly on the system [strptime format](http://pubs.opengroup.org/onlinepubs/009695399/functions/strptime.html).
 
 **TIME MATH**
 
