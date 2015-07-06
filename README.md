@@ -357,7 +357,7 @@ as so:
     │ Toad│     25.0│   7│
     └─────┴─────────┴────┘
 
-The currently supported list of field identifiers is "IFSEGNZ" integers floats strings enumerated-strings guids/uuids ips custom-datetime. IP addresses are converted to integers using inet_pton. The custom datetime parser format is set like this
+The currently supported list of field identifiers is "IFSEGNZ*" integers floats strings enumerated-strings guids/uuids ips custom-datetime skipped-field. IP addresses are converted to integers using inet_pton. The custom datetime parser format is set like this
 
     .Parse.strptime_format:'%d-%b-%y %H:%M:%S'  //format for 'Z'
 
