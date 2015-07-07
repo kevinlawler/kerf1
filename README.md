@@ -636,8 +636,8 @@ You can communicate with this instance either via a Kerf client or via the Kerf 
 A client can be a plain old Kerf instance:
 
     ./kerf
-  
-In the client paste each of the lines individually:
+    
+Note: the server and the client should be separate instances. In the client paste each of the lines individually:
     
     socket: open_socket("localhost","1234")
 
