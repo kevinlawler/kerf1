@@ -5,8 +5,6 @@ What is Kerf?
 
 Kerf is a columnar tick database for Linux/OSX/BSD/iOS/Android. It is written in C and speaks JSON and SQL.
 
-See Kerf on TimeStored: http://www.timestored.com/time-series-data/kerf-database
-
 **Contact Kevin (e.g., licensing, feature/documentation requests):**
 
   k.concerns@gmail.com
@@ -296,12 +294,13 @@ Some operations yield array-wise results.
       {{id:id, time:time, brightness:brightness}}
 
 
-  They are all pretty printed [ugly in the alpha] as
+  They are all printed as
 
-
-    |id|time|brightness|
-    [1, 2015.04.01T00:45:15.598, 48.6]
-
+    ┌──┬───────────────────────┬──────────┐
+    │id│time                   │brightness│
+    ├──┼───────────────────────┼──────────┤
+    │ 1│2015.07.06T16:23:50.509│      48.6│
+    └──┴───────────────────────┴──────────┘
 
   SQL inserts and updates are forms of assignment: they are always "saved". Bulk inserts are much faster than single inserts. The columns id, time, and brightness are vectorized as INT, STAMP, and FLOAT vectors respectively. The preceding tables all exist in-memory only.
   
@@ -314,7 +313,9 @@ Some operations yield array-wise results.
       write_to_path('path.to.file', object);
       
 
-For an on-disk table that handles transactional writes, you'll want a mapped object. Warning: currently the iOS operating system restricts _virtual_ memory allocations to something less than 2G in size, _even on_ devices with 64-bit pointers. So mapping very large tables will not get far around the memory limitations of the mobile device. Apple really should look into raising it: it may be a legacy restriction from some now-outdated concerns. On OS X the virtual memory limit is effectively unrestricted.
+For an on-disk table that handles transactional writes, you'll want a mapped object. On Linux, OSX, BSD and other systems, the virtual memory limit for mapped objects is slightly less than 47-bits, or 128T, which for most people is effectively unlimited.
+
+Apple's iOS operating system restricts _virtual_ memory allocations to something less than 2G in size, _even on_ devices with 64-bit pointers. So mapping very large tables will not get far around the memory limitations of the mobile device. Apple really should look into raising it: it may be a legacy restriction from some now-outdated concerns. On OS X the virtual memory limit is effectively unrestricted.
 
 You can open tables on disk via the `open_table(filepath)` call. Here it is via the Objective-C API:
 
@@ -327,6 +328,69 @@ You can open tables on disk via the `open_table(filepath)` call. Here it is via 
 
   Modifications to the variable cause the inserts to persist to the disk. They will be there the next time you open the table. Most variables in Kerf use reference counting or copy-on-write to ensure uniqueness. Mapped values like opened tables are different: all reference the same open item. Changes to one affect the other.
 
+**CSV LOADING**
+
+Loading CSVs into tables should be easy. The function for reading a CSV into an in-memory table is `read_table_from_csv`, and it is used in this way:
+
+    read_table_from_csv(csv_file, fields, header_rows)
+    
+so that
+
+    csv_file: 'my_logs01.csv'
+    fields: 'SFI'
+    header_rows: 1
+    table: read_table_from_csv(csv_file, fields, header_rows)
+    
+will load a file that looks like:
+
+    Racer, Max Speed, Wins
+    Mario, 30.01, 10
+    Luigi, 28.02, 12
+    Toad,  25.00,  7
+
+as so:
+
+    KeRF> t: read_table_from_csv('my_logs01.csv', 'SFI', 1)
+    ┌─────┬─────────┬────┐
+    │Racer│Max Speed│Wins│
+    ├─────┼─────────┼────┤
+    │Mario│    30.01│  10│
+    │Luigi│    28.02│  12│
+    │ Toad│     25.0│   7│
+    └─────┴─────────┴────┘
+
+The currently supported list of field identifiers is "IFSEGNZ*" integers floats strings enumerated-strings guids/uuids ips custom-datetime skipped-field. IP addresses are converted to integers using inet_pton. The custom datetime parser format is set like this
+
+    .Parse.strptime_format:'%d-%b-%y %H:%M:%S'  //format for 'Z'
+
+and relies directly on the system [strptime format](http://pubs.opengroup.org/onlinepubs/009695399/functions/strptime.html).
+
+You can also parse the contents of CSV directly into an on-disk memory-mapped table. The method for this is 
+
+    build_table_from_csv(table_filename, csv_file, fields, header_rows)
+    
+or
+
+    build_table_from_csv('karts.table', 'my_logs01.csv', 'SFI', 1)
+    
+If you capture the return value from `build_table_from_csv` you can write to it and insert into it as you would with any table created using `open_table(filepath)`.
+    
+The `build_table_from_csv` method is similar to `read_table_from_csv`. The difference is that `build_table_from_csv` accepts a table filename and writes the table to disk. In the process, `build_table_from_csv` can avoid storing the entire table in memory, which is convenient if the file you are parsing is several terabytes but your system memory is smaller.
+
+The contents of the built table are the same as if you saved an in-memory table created with `read_table_from_csv` using the following code
+
+     t: read_table_from_csv('my_logs01.csv', 'SFI', 1)
+     write_to_path('karts.table', t);
+     
+If you exit and reopen the app (or reassign any variables storing the table), then the following table opening scheme
+  
+    t: read_from_path('karts.table')  //in-memory only version table
+
+produces the same value regardless of whether the table was created using the single call `build_table_from_csv` or the combination of calls `read_table_from_csv` and `write_to_path`. The same line of reasoning holds for 
+
+    t: open_table('karts.table')      //on-disk memory-mapped version of table
+
+when opening the table on disk.
 
 **TIME MATH**
 
@@ -418,13 +482,30 @@ To extract individual parts from times, use
     running: {{id: ids, stamp: stamps, heartrate: heartrates, lane: lanes}} 
 
 
+    ┌──┬───────────────────────┬─────────┬────┐
+    │id│stamp                  │heartrate│lane│
+    ├──┼───────────────────────┼─────────┼────┤
+    │ 1│2015.07.06T16:24:55.543│  96.4771│   0│
+    │ 2│2015.07.06T16:24:56.543│  107.397│   1│
+    │ 3│2015.07.06T16:24:57.543│  108.356│   2│
+    │ 4│2015.07.06T16:24:58.543│  92.2126│   3│
+    │ 5│2015.07.06T16:24:59.543│  125.115│   4│
+    │ 6│2015.07.06T16:25:00.543│  161.533│   5│
+    │ 7│2015.07.06T16:25:01.543│  175.726│   5│
+    │ 8│2015.07.06T16:25:02.543│  118.177│   4│
+    │..│                     ..│      .. │  ..│
+    └──┴───────────────────────┴─────────┴────┘
+
+
   Someone is running a zigzag across a six-lane track with a random heartbeat. This is not exactly realistic data but let's go with it. We can count the number of rows in the table:
 
 
     select count(*) as rows from running
-    |rows|
-    [10000]
-
+    ┌─────┐
+    │rows │
+    ├─────┤
+    │10000│
+    └─────┘
 
 And there's no reason we can't run SQL inside of JSON:
 
@@ -442,19 +523,23 @@ And there's no reason we can't run SQL inside of JSON:
 
 
     first(3, running)
-      |id|stamp|heartrate|lane|
-      [1, 2015.04.01T19:13:33.917, 96.4771, 0]
-      [2, 2015.04.01T19:13:34.917, 107.397, 1]
-      [3, 2015.04.01T19:13:35.917, 108.356, 2]
-  
-  
+    ┌──┬───────────────────────┬─────────┬────┐
+    │id│stamp                  │heartrate│lane│
+    ├──┼───────────────────────┼─────────┼────┤
+    │ 1│2015.07.06T16:24:55.543│  96.4771│   0│
+    │ 2│2015.07.06T16:24:56.543│  107.397│   1│
+    │ 3│2015.07.06T16:24:57.543│  108.356│   2│
+    └──┴───────────────────────┴─────────┴────┘
+
   Get the bounds on the time:
 
 
     select first(stamp), last(stamp) from running
-      |stamp|stamp1|
-      [2015.04.01T19:13:33.917, 2015.04.01T22:00:12.917]
-
+    ┌───────────────────────┬───────────────────────┐
+    │stamp                  │stamp1                 │
+    ├───────────────────────┼───────────────────────┤
+    │2015.07.06T16:24:55.543│2015.07.06T19:11:34.543│
+    └───────────────────────┴───────────────────────┘
 
   Alternatively
 
@@ -467,29 +552,36 @@ And there's no reason we can't run SQL inside of JSON:
 
 
     select avg(heartrate) from running where heartrate > 100 group by lane
-      |lane|heartrate|
-      [1, 139.192]
-      [2, 140.283]
-      [4, 139.772]
-      [5, 140.244]
-      [3, 140.167]
-      [0, 138.541]
+    ┌────┬─────────┐
+    │lane│heartrate│
+    ├────┼─────────┤
+    │   1│  139.192│
+    │   2│  140.283│
+    │   4│  139.772│
+    │   5│   140.24│
+    │   3│  140.167│
+    │   0│  138.541│
+    └────┴─────────┘
 
   Nested subqueries:
   
   
     select * from (select avg(heartrate) from running where heartrate > 100 group by lane) where heartrate = max(heartrate)
-      |lane|heartrate|
-      [2, 140.283]
-
+    ┌────┬─────────┐
+    │lane│heartrate│
+    ├────┼─────────┤
+    │   2│  140.283│
+    └────┴─────────┘
 
   We can store the results of queries in other variables.
 
 
     b: select max(heartrate) from running where lane = 2
-      |heartrate|
-      [179.952]
-
+    ┌─────────┐
+    │heartrate│
+    ├─────────┤
+    │  179.976│
+    └─────────┘
 
   And retrieve the cell value only like so:
   
@@ -569,6 +661,7 @@ Then in the client execute
 
 Currently IPC requires the user to store the socket handle. Probably what will happen is we will remove this and have all IPC calls use the server and port. It would be simple for Kerf to manage a hashtable of hosts and ports pointing to socket handles, and to keep or refresh them as necessary, and so we should probably do that.
 
+See a longer exposition of this topic on TimeStored: http://www.timestored.com/time-series-data/kerf-database
 
 **CONTROL FLOW**
 
