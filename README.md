@@ -365,6 +365,31 @@ The currently supported list of field identifiers is "IFSEGNZ*" integers floats 
 
 and relies directly on the system [strptime format](http://pubs.opengroup.org/onlinepubs/009695399/functions/strptime.html).
 
+You can also parse the contents of CSV directly into an on-disk memory-mapped table. The method for this is 
+
+    build_table_from_csv(table_filename, csv_file, fields, header_rows)
+    
+or
+
+    build_table_from_csv('karts.table', 'my_logs01.csv', 'SFI', 1)
+    
+If you capture the return value from `build_table_from_csv` you can write to it and insert into it as you would with any table created using `open_table(filepath)`.
+    
+The `build_table_from_csv` method is similar to `read_table_from_csv`. The difference is that `build_table_from_csv` accepts a table filename, does not need to keep the entire table in memory, and writes the table to disk. The contents of this table are the same as if you saved an in-memory table created with `read_table_from_csv` using the following code
+
+     t: read_table_from_csv('my_logs01.csv', 'SFI', 1)
+     write_to_path('karts.table', t);
+     
+If you exit and reopen the app (or reassign any variables storing the table), then the following table opening scheme
+  
+    t: read_from_path('karts.table')  //in-memory only version table
+
+produces the same value regardless of whether the table was created using the single call `build_table_from_csv` or the combination of calls `read_table_from_csv` and `write_to_path`. The same line of reasoning holds for 
+
+    t: open_table('karts.table')      //on-disk memory-mapped version of table
+
+when opening the table on disk.
+
 **TIME MATH**
 
   We previously saw absolute time stamps of the form
