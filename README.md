@@ -313,7 +313,9 @@ Some operations yield array-wise results.
       write_to_path('path.to.file', object);
       
 
-For an on-disk table that handles transactional writes, you'll want a mapped object. Warning: currently the iOS operating system restricts _virtual_ memory allocations to something less than 2G in size, _even on_ devices with 64-bit pointers. So mapping very large tables will not get far around the memory limitations of the mobile device. Apple really should look into raising it: it may be a legacy restriction from some now-outdated concerns. On OS X the virtual memory limit is effectively unrestricted.
+For an on-disk table that handles transactional writes, you'll want a mapped object. On Linux, OSX, BSD and other systems, the virtual memory limit for mapped objects is slightly less than 47-bits, or 128T, which for most people is effectively unlimited.
+
+Apple's iOS operating system restricts _virtual_ memory allocations to something less than 2G in size, _even on_ devices with 64-bit pointers. So mapping very large tables will not get far around the memory limitations of the mobile device. Apple really should look into raising it: it may be a legacy restriction from some now-outdated concerns. On OS X the virtual memory limit is effectively unrestricted.
 
 You can open tables on disk via the `open_table(filepath)` call. Here it is via the Objective-C API:
 
