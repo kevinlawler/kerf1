@@ -375,7 +375,9 @@ or
     
 If you capture the return value from `build_table_from_csv` you can write to it and insert into it as you would with any table created using `open_table(filepath)`.
     
-The `build_table_from_csv` method is similar to `read_table_from_csv`. The difference is that `build_table_from_csv` accepts a table filename, does not need to keep the entire table in memory, and writes the table to disk. The contents of this table are the same as if you saved an in-memory table created with `read_table_from_csv` using the following code
+The `build_table_from_csv` method is similar to `read_table_from_csv`. The difference is that `build_table_from_csv` accepts a table filename and writes the table to disk. In the process, `build_table_from_csv` can avoid storing the entire table in memory, which is convenient if the file you are parsing is several terabytes but your system memory is smaller.
+
+The contents of the built table are the same as if you saved an in-memory table created with `read_table_from_csv` using the following code
 
      t: read_table_from_csv('my_logs01.csv', 'SFI', 1)
      write_to_path('karts.table', t);
