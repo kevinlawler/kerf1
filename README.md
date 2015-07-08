@@ -7,7 +7,7 @@ Kerf is a columnar tick database for Linux/OSX/BSD/iOS/Android. It is written in
 
 **Contact Kevin (e.g., licensing, feature/documentation requests):**
 
-  k.concerns@gmail.com
+  kevin@getkerf.com
 
 Whirlwind Language Guide:
 -------------------------
