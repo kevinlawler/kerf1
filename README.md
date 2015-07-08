@@ -392,6 +392,32 @@ produces the same value regardless of whether the table was created using the si
 
 when opening the table on disk.
 
+**SCRIPTS**
+
+Kerf code can be stored in scripts. The suggested extension is `.kerf` for Kerf scriptfiles. You can load scripts from the console using `load`, so that if a file `myscript.kerf` contains the code
+
+   a:11
+   b:22
+   c:a+b
+
+Then a terminal session that loads the script might look as follows:
+
+    KeRF> load 'myscript.kerf'
+    KeRF> c
+      33
+
+If a script named "startup.kerf" is present in Kerf's working directory, then it will be executed at startup. Scripts may be loaded from other scripts.
+
+**FLAGS**
+
+The `-x` flag executes and prints its argument. The `-e` flag executes its argument without printing.
+
+    $ ./kerf -x '1+1'
+    2
+    $ ./kerf -e '1+1'
+
+The `-q` or quiet flag starts Kerf without a banner. It has no arugment. The `-p` flag opens an IPC port on its argument.
+
 **TIME MATH**
 
   We previously saw absolute time stamps of the form
