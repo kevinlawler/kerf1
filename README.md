@@ -396,9 +396,11 @@ when opening the table on disk.
 
 Kerf code can be stored in scripts. The suggested extension is `.kerf` for Kerf scriptfiles. You can load scripts from the console using `load`, so that if a file `myscript.kerf` contains the code
 
-   a:11
-   b:22
-   c:a+b
+
+    a:11
+    b:22
+    c:a+b
+
 
 Then a terminal session that loads the script might look as follows:
 
