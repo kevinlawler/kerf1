@@ -773,6 +773,9 @@ Examples for average, standard deviation, and variance (avg, std, var).
       sum((a minus avg(a)) pow 2) divide count(a)
       pow(std a, 2) 
   
+**LEGAL**
+
+Kerf uses [libcsv](http://sourceforge.net/projects/libcsv/).
 
 **MISC LANGUAGE SPECS**
 
@@ -784,5 +787,5 @@ Examples for average, standard deviation, and variance (avg, std, var).
   Certain objects will intern strings locally. Kerf data structures use
   optimized hash tables and b-trees. All Kerf objects serialize automatically
   and use the same [decompressed] representation in-memory, on-disk, and over
-  the network. By default the PRNG is initialized with a nondeterministic seed.
+  the network. Kerf uses  By default the PRNG is initialized with a nondeterministic seed.
   By default times are UTC.
