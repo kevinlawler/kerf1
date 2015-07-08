@@ -414,7 +414,7 @@ Scripts following the binary's name on the command line will be executed in orde
     $ ./kerf myscript.kerf b.kerf c.kerf
 
 
-If a script named "startup.kerf" is present in Kerf's working directory, then it will be executed at startup. Scripts may be loaded from other scripts.
+If a script named "startup.kerf" is present in Kerf's working directory, then it will be executed at startup, before any other command-line scripts. Scripts may be loaded from other scripts.
 
 **FLAGS**
 
