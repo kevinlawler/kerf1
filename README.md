@@ -407,6 +407,12 @@ Then a terminal session that loads the script might look as follows:
     KeRF> load 'myscript.kerf'
     KeRF> c
       33
+      
+Scripts following the binary's name on the command line will be executed in order.
+
+
+    $ ./kerf myscript.kerf b.kerf c.kerf
+
 
 If a script named "startup.kerf" is present in Kerf's working directory, then it will be executed at startup. Scripts may be loaded from other scripts.
 
