@@ -426,6 +426,14 @@ The `-x` flag executes and prints its argument. The `-e` flag executes its argum
 
 The `-q` or quiet flag starts Kerf without a banner. It has no arugment. The `-p` flag opens an IPC port on its argument.
 
+**EXITING**
+
+From the console, pressing `ctrl+d` will exit the process. (This sends an end-of-transmission control character.) The Kerf function `exit()` will end the process via code execution. If you like, you can optionally pass an argument to `exit` that will be returned by the Kerf process to the shell.
+
+    exit()
+    exit(0)
+    exit(-1)
+
 **TIME MATH**
 
   We previously saw absolute time stamps of the form
