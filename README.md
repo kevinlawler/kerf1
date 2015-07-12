@@ -705,6 +705,17 @@ Currently IPC requires the user to store the socket handle. Probably what will h
 
 See a longer exposition of this topic on TimeStored: http://www.timestored.com/time-series-data/kerf-database
 
+Some IPC-related variables:
+
+    .Net.client - current integer handle of the now-processing client
+    .Net.on_close - one-argument function called on the integer handle of the closing client
+  
+Examples: 
+    
+    .Net.on_close: {[x] out 'client closed: ' join (string x) join '\n'}
+    
+    send_async(socket, "a:2; display .Net.client; out ' is the client\n'")
+    
 **CONTROL FLOW**
 
   Control flow is designed to be as generic as possible. You probably don't need it yet, but Kerf uses: 
