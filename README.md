@@ -7,7 +7,7 @@ Kerf is a columnar tick database for Linux/OSX/BSD/iOS/Android. It is written in
 
 **Contact Kevin (e.g., licensing, feature/documentation requests):**
 
-  k.concerns@gmail.com
+  kevin@getkerf.com
 
 Whirlwind Language Guide:
 -------------------------
@@ -392,6 +392,48 @@ produces the same value regardless of whether the table was created using the si
 
 when opening the table on disk.
 
+**SCRIPTS**
+
+Kerf code can be stored in scripts. The suggested extension is `.kerf` for Kerf scriptfiles. You can load scripts from the console using `load`, so that if a file `myscript.kerf` contains the code
+
+
+    a:11
+    b:22
+    c:a+b
+
+
+Then a terminal session that loads the script might look as follows:
+
+    KeRF> load 'myscript.kerf'
+    KeRF> c
+      33
+      
+Scripts following the binary's name on the command line will be executed in order.
+
+
+    $ ./kerf myscript.kerf b.kerf c.kerf
+
+
+If a script named "startup.kerf" is present in Kerf's working directory, then it will be executed at startup, before any other command-line scripts. Scripts may be loaded from other scripts.
+
+**FLAGS**
+
+The `-x` flag executes and prints its argument. The `-e` flag executes its argument without printing.
+
+    $ ./kerf -x '1+1'
+    2
+    $ ./kerf -e '1+1'
+
+The `-q` or quiet flag starts Kerf without a banner. It has no arugment. The `-p` flag opens an IPC port on its argument.
+
+**EXITING**
+
+From the console, pressing `ctrl+d` will exit the process. (This sends an end-of-transmission control character.) The Kerf function `exit()` will end the process via code execution. If you like, you can optionally pass an argument to `exit` that will be returned by the Kerf process to the shell.
+
+    exit()
+    exit(0)
+    exit(-1)
+
 **TIME MATH**
 
   We previously saw absolute time stamps of the form
@@ -636,8 +678,8 @@ You can communicate with this instance either via a Kerf client or via the Kerf 
 A client can be a plain old Kerf instance:
 
     ./kerf
-  
-In the client paste each of the lines individually:
+    
+Note: the server and the client should be separate instances. In the client paste each of the lines individually:
     
     socket: open_socket("localhost","1234")
 
@@ -663,6 +705,17 @@ Currently IPC requires the user to store the socket handle. Probably what will h
 
 See a longer exposition of this topic on TimeStored: http://www.timestored.com/time-series-data/kerf-database
 
+Some IPC-related variables:
+
+    .Net.client - current integer handle of the now-processing client
+    .Net.on_close - one-argument function called on the integer handle of the closing client
+  
+Examples: 
+    
+    .Net.on_close: {[x] out 'client closed: ' join (string x) join '\n'}
+    
+    send_async(socket, "a:2; display .Net.client; out ' is the client\n'")
+    
 **CONTROL FLOW**
 
   Control flow is designed to be as generic as possible. You probably don't need it yet, but Kerf uses: 
@@ -745,6 +798,9 @@ Examples for average, standard deviation, and variance (avg, std, var).
       sum((a minus avg(a)) pow 2) divide count(a)
       pow(std a, 2) 
   
+**LEGAL**
+
+Kerf uses [libcsv](http://sourceforge.net/projects/libcsv/).
 
 **MISC LANGUAGE SPECS**
 
@@ -756,5 +812,5 @@ Examples for average, standard deviation, and variance (avg, std, var).
   Certain objects will intern strings locally. Kerf data structures use
   optimized hash tables and b-trees. All Kerf objects serialize automatically
   and use the same [decompressed] representation in-memory, on-disk, and over
-  the network. By default the PRNG is initialized with a nondeterministic seed.
+  the network. Kerf uses  By default the PRNG is initialized with a nondeterministic seed.
   By default times are UTC.
