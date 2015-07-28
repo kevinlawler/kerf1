@@ -646,6 +646,39 @@ And there's no reason we can't run SQL inside of JSON:
    
   Kerf can use our nicely sorted ID range to perform fast lookups even without an index. Table traits are undocumented at this point.
   
+**LEFT JOIN**
+  
+A basic left join can be accomplished with the `left_join` verb. 
+
+    t:{{a:1 2 2 3, b:10 20 30 40}}
+    u:{{a:2 3, c:1.5 3}}
+    left_join(t,u,"a")
+    
+    ┌─┬──┬───┐
+    │a│b │c  │
+    ├─┼──┼───┤
+    │1│10│nan│
+    │2│20│1.5│
+    │2│30│1.5│
+    │3│40│3.0│
+    └─┴──┴───┘
+    
+The third argument indicates the key or keys to match on. The argument is a string or an array of strings.
+
+    u:{{a:2 3, b:30 40, c:1.5 3}}
+    left_join(t,u,["a","b"])
+  
+    ┌─┬──┬───┐
+    │a│b │c  │
+    ├─┼──┼───┤
+    │1│10│nan│
+    │2│20│nan│
+    │2│30│1.5│
+    │3│40│3.0│
+    └─┴──┴───┘
+  
+  
+  
 **ADVANCED TYPES**
 
 There are two advanced types which we can use for specialized columns: 
