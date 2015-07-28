@@ -697,7 +697,7 @@ If your tables don't match on column names, no sweat, use a map.
 
 One useful time-series operation is the asof join, which is predictably called using the `asof_join` function. The function accepts four arguments. The first three are the same as in the case of left join, and operate similarly. The third argument indicates columns whose items must match exactly. The fourth argument is a string or array of strings indicated column names. Typically these refer to time columns, though that is not required. 
 
-If the columns in the third argument require "exact" matches, then the columns in the fourth argument accept "fuzzy"  matches: they'll match on any value up to and including the time in question. Perhaps this is best illustrated with an example. This style of matching is useful for seeing what the "latest" value at a specific time was, when in reality the last update may have occured some time in the past. 
+If the columns in the third argument require "exact" matches, then the columns in the fourth argument accept "fuzzy"  matches: they'll match on any value up to and including the time in question. Perhaps this is best illustrated with an example. This style of matching is useful for seeing what the latest value at a specific time was, when in reality the last update may have occured some time in the past. 
 
     //Example taken from timestored.com
     KeRF> trades: {{time: 07:00 08:30 09:59 10:00 12:00 16:00, sym:enum['a','a','a','a','b','a'], price: .9 1.5 1.9 2 9 10, size: 100 700 200 400 500 800}}
