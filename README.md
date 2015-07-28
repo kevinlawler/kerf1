@@ -677,7 +677,56 @@ The third argument indicates the key or keys to match on. The argument is a stri
     │3│40│3.0│
     └─┴──┴───┘
   
-  
+**ASOF JOIN**
+
+One useful time-series operation is the asof join, which is predictably called using the `asof_join` verb. The verb accepts four arguments. The first three are the same as in the case of left join, and operate similarly. Items in these columns must match exactly. The fourth argument is a string or array of strings indicated column names. Typically these refer to time columns, though that is not required. 
+
+If the columns in the third argument require "exact" matches, then the columns in the fourth argument accept "fuzzy"  matches: they'll match on any value up to and including the time in question. Perhaps this is best illustrated with an example. This style of matching is useful for seeing what the "latest" value at a specific time was, when in reality the last update may have occured some time in the past. 
+
+    //Example taken from timestored.com
+    KeRF> trades: {{time: 07:00 08:30 09:59 10:00 12:00 16:00, sym:enum['a','a','a','a','b','a'], price: .9 1.5 1.9 2 9 10, size: 100 700 200 400 500 800}}
+    
+    ┌────────────┬───┬─────┬────┐
+    │time        │sym│price│size│
+    ├────────────┼───┼─────┼────┤
+    │07:00:00.000│  a│  0.9│ 100│
+    │08:30:00.000│  a│  1.5│ 700│
+    │09:59:00.000│  a│  1.9│ 200│
+    │10:00:00.000│  a│  2.0│ 400│
+    │12:00:00.000│  b│  9.0│ 500│
+    │16:00:00.000│  a│ 10.0│ 800│
+    └────────────┴───┴─────┴────┘
+    
+    KeRF> quotes: {{time: 08:00 09:00 10:00 11:00 12:00 13:00 14:00 15:00, sym:enum['a','b','a','b','b','a','b','a'], bid: 1 9 2 8 8.5 3 7 4}}
+    
+    ┌────────────┬───┬───┐
+    │time        │sym│bid│
+    ├────────────┼───┼───┤
+    │08:00:00.000│  a│1.0│
+    │09:00:00.000│  b│9.0│
+    │10:00:00.000│  a│2.0│
+    │11:00:00.000│  b│8.0│
+    │12:00:00.000│  b│8.5│
+    │13:00:00.000│  a│3.0│
+    │14:00:00.000│  b│7.0│
+    │15:00:00.000│  a│4.0│
+    └────────────┴───┴───┘
+    
+    KeRF> asof_join(trades, quotes, ['sym'], ['time'])                                                                                            
+    ┌────────────┬───┬─────┬────┬───┐
+    │time        │sym│price│size│bid│
+    ├────────────┼───┼─────┼────┼───┤
+    │07:00:00.000│  a│  0.9│ 100│nan│
+    │08:30:00.000│  a│  1.5│ 700│1.0│
+    │09:59:00.000│  a│  1.9│ 200│1.0│
+    │10:00:00.000│  a│  2.0│ 400│2.0│
+    │12:00:00.000│  b│  9.0│ 500│8.5│
+    │16:00:00.000│  a│ 10.0│ 800│4.0│
+    └────────────┴───┴─────┴────┴───┘
+    
+    
+
+Time-series events are necessarily logged at discrete times. Asof Join is a tool that lets us treat a discrete series as if it were continuous.
   
 **ADVANCED TYPES**
 
