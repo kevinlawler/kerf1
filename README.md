@@ -695,7 +695,7 @@ If your tables don't match on column names, no sweat, use a map.
     
 **ASOF JOIN**
 
-One useful time-series operation is the asof join, which is predictably called using the `asof_join` function. The function accepts four arguments. The first three are the same as in the case of left join, and operate similarly. The third argument indicates columns whose items must match exactly. The fourth argument is a string or array of strings indicated column names. Typically these refer to time columns, though that is not required. 
+One useful time-series operation is the asof join, which is predictably called using the `asof_join` function. The function accepts four arguments. The first three are the same as in the case of left join, and operate similarly. The third argument indicates columns whose items must match exactly. The fourth argument is a string or array of strings indicating column names. Typically these refer to time columns, though that is not required. 
 
 If the columns in the third argument require "exact" matches, then the columns in the fourth argument accept "fuzzy"  matches: they'll match on any value up to and including the time in question. Perhaps this is best illustrated with an example. This style of matching is useful for seeing what the latest value at a specific time was, when in reality the last update may have occured some time in the past. 
 
