@@ -648,7 +648,7 @@ And there's no reason we can't run SQL inside of JSON:
   
 **LEFT JOIN**
   
-A basic left join can be accomplished with the `left_join` verb. 
+A basic left join can be accomplished with the `left_join` function. 
 
     t:{{a:1 2 2 3, b:10 20 30 40}}
     u:{{a:2 3, c:1.5 3}}
@@ -679,7 +679,7 @@ The third argument indicates the key or keys to match on. The argument is a stri
   
 **ASOF JOIN**
 
-One useful time-series operation is the asof join, which is predictably called using the `asof_join` verb. The verb accepts four arguments. The first three are the same as in the case of left join, and operate similarly. Items in these columns must match exactly. The fourth argument is a string or array of strings indicated column names. Typically these refer to time columns, though that is not required. 
+One useful time-series operation is the asof join, which is predictably called using the `asof_join` function. The function accepts four arguments. The first three are the same as in the case of left join, and operate similarly. Items in these columns must match exactly. The fourth argument is a string or array of strings indicated column names. Typically these refer to time columns, though that is not required. 
 
 If the columns in the third argument require "exact" matches, then the columns in the fourth argument accept "fuzzy"  matches: they'll match on any value up to and including the time in question. Perhaps this is best illustrated with an example. This style of matching is useful for seeing what the "latest" value at a specific time was, when in reality the last update may have occured some time in the past. 
 
