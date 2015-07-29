@@ -687,7 +687,7 @@ If your tables don't match on column names, no sweat, use a map.
     │a│b │c  │
     ├─┼──┼───┤
     │1│10│nan│
-    │2│20│nan│
+    │2│20│1.5│
     │2│30│1.5│
     │3│40│3.0│
     └─┴──┴───┘
