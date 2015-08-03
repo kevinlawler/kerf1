@@ -328,7 +328,7 @@ You can open tables on disk via the `open_table(filepath)` call. Here it is via 
 
   Modifications to the variable cause the inserts to persist to the disk. They will be there the next time you open the table. Most variables in Kerf use reference counting or copy-on-write to ensure uniqueness. Mapped values like opened tables are different: all reference the same open item. Changes to one affect the other.
 
-**CSV LOADING**
+**CSV/TSV/ETC LOADING**
 
 Loading CSVs into tables should be easy. The function for reading a CSV into an in-memory table is `read_table_from_csv`, and it is used in this way:
 
@@ -365,32 +365,40 @@ The currently supported list of field identifiers is "IFSEGNZ*" integers floats 
 
 and relies directly on the system [strptime format](http://pubs.opengroup.org/onlinepubs/009695399/functions/strptime.html).
 
-You can also parse the contents of CSV directly into an on-disk memory-mapped table. The method for this is 
+Similar functions exist for TSVs and for arbitrary character-delimited files (e.g., pipe-delimited):
 
-    build_table_from_csv(table_filename, csv_file, fields, header_rows)
+    read_table_from_tsv('prices.tsv', "SFFF", 1)
+    read_table_from_delimited_file('\t', 'prices.tsv', "SFFF", 1)
+    read_table_from_delimited_file('|',  'prices.psv', "SFFF", 1)
     
-or
-
-    build_table_from_csv('karts.table', 'my_logs01.csv', 'SFI', 1)
+    ┌─────────┬──────┬──────┬──────┐
+    │id       │rent_1│rent_2│rent_3│
+    ├─────────┼──────┼──────┼──────┤
+    │E01004236│1100.0│1275.0│1500.0│
+    │E01004237│1150.0│1550.0│1725.0│
+    │E01004234│1050.0│1375.0│1650.0│
+    │E01004235│1025.0│1300.0│1500.0│
+    │E01004232│ 975.0│1300.0│2025.0│
+    │E01004233│1050.0│1425.0│1800.0│
+    │E01004230│1125.0│1300.0│2025.0│
+    │E01004231│1175.0│1550.0│1725.0│
+    │       ..│    ..│    ..│    ..│
+    └─────────┴──────┴──────┴──────┘
     
-If you capture the return value from `build_table_from_csv` you can write to it and insert into it as you would with any table created using `open_table(filepath)`.
-    
-The `build_table_from_csv` method is similar to `read_table_from_csv`. The difference is that `build_table_from_csv` accepts a table filename and writes the table to disk. In the process, `build_table_from_csv` can avoid storing the entire table in memory, which is convenient if the file you are parsing is several terabytes but your system memory is smaller.
+Once you've stored such a table in a variable in memory, you can write it to disk for later use using `write_to_path`:
 
-The contents of the built table are the same as if you saved an in-memory table created with `read_table_from_csv` using the following code
 
-     t: read_table_from_csv('my_logs01.csv', 'SFI', 1)
-     write_to_path('karts.table', t);
-     
-If you exit and reopen the app (or reassign any variables storing the table), then the following table opening scheme
-  
-    t: read_from_path('karts.table')  //in-memory only version table
+     t: read_table_from_csv('prices.csv', 'SFF', 1)
+     write_to_path('prices.table', t);
 
-produces the same value regardless of whether the table was created using the single call `build_table_from_csv` or the combination of calls `read_table_from_csv` and `write_to_path`. The same line of reasoning holds for 
 
-    t: open_table('karts.table')      //on-disk memory-mapped version of table
+To open such a table later call
 
-when opening the table on disk.
+    t: read_from_path('prices.table')  //in-memory only version table
+    or
+    t: open_table('prices.table')      //on-disk memory-mapped version of table
+
+
 
 **SCRIPTS**
 
