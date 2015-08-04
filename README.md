@@ -811,6 +811,14 @@ Currently IPC requires the user to store the socket handle. Probably what will h
 
 See a longer exposition of this topic on TimeStored: http://www.timestored.com/time-series-data/kerf-database
 
+As you might guess, `send_sync` is also available. The difference from `send_async` is that `send_sync` blocks and returns the evaluated reponse from the remote server.
+
+    KeRF> socket: open_socket("localhost","1234")
+    KeRF> send_sync(socket,"1+11",[])
+    12
+
+
+
 Some IPC-related variables:
 
     .Net.client - current integer handle of the now-processing client
