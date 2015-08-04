@@ -3,7 +3,7 @@
 What is Kerf?
 -------------
 
-Kerf is a columnar tick database for Linux/OSX/BSD/iOS/Android. It is written in C and speaks JSON and SQL.
+Kerf is a columnar tick database for Linux/OSX/BSD/iOS/Android. It is written in C and lets you mix JSON and SQL.
 
 **Contact Kevin (e.g., licensing, feature/documentation requests):**
 
@@ -328,7 +328,7 @@ You can open tables on disk via the `open_table(filepath)` call. Here it is via 
 
   Modifications to the variable cause the inserts to persist to the disk. They will be there the next time you open the table. Most variables in Kerf use reference counting or copy-on-write to ensure uniqueness. Mapped values like opened tables are different: all reference the same open item. Changes to one affect the other.
 
-**CSV LOADING**
+**CSV/TSV/ETC LOADING**
 
 Loading CSVs into tables should be easy. The function for reading a CSV into an in-memory table is `read_table_from_csv`, and it is used in this way:
 
@@ -365,32 +365,40 @@ The currently supported list of field identifiers is "IFSEGNZ*" integers floats 
 
 and relies directly on the system [strptime format](http://pubs.opengroup.org/onlinepubs/009695399/functions/strptime.html).
 
-You can also parse the contents of CSV directly into an on-disk memory-mapped table. The method for this is 
+Similar functions exist for TSVs and for arbitrary character-delimited files (e.g., pipe-delimited):
 
-    build_table_from_csv(table_filename, csv_file, fields, header_rows)
+    read_table_from_tsv('prices.tsv', "SFFF", 1)
+    read_table_from_delimited_file('\t', 'prices.tsv', "SFFF", 1)
+    read_table_from_delimited_file('|',  'prices.psv', "SFFF", 1)
     
-or
-
-    build_table_from_csv('karts.table', 'my_logs01.csv', 'SFI', 1)
+    ┌─────────┬──────┬──────┬──────┐
+    │id       │rent_1│rent_2│rent_3│
+    ├─────────┼──────┼──────┼──────┤
+    │E01004236│1100.0│1275.0│1500.0│
+    │E01004237│1150.0│1550.0│1725.0│
+    │E01004234│1050.0│1375.0│1650.0│
+    │E01004235│1025.0│1300.0│1500.0│
+    │E01004232│ 975.0│1300.0│2025.0│
+    │E01004233│1050.0│1425.0│1800.0│
+    │E01004230│1125.0│1300.0│2025.0│
+    │E01004231│1175.0│1550.0│1725.0│
+    │       ..│    ..│    ..│    ..│
+    └─────────┴──────┴──────┴──────┘
     
-If you capture the return value from `build_table_from_csv` you can write to it and insert into it as you would with any table created using `open_table(filepath)`.
-    
-The `build_table_from_csv` method is similar to `read_table_from_csv`. The difference is that `build_table_from_csv` accepts a table filename and writes the table to disk. In the process, `build_table_from_csv` can avoid storing the entire table in memory, which is convenient if the file you are parsing is several terabytes but your system memory is smaller.
+Once you've stored such a table in a variable in memory, you can write it to disk for later use using `write_to_path`:
 
-The contents of the built table are the same as if you saved an in-memory table created with `read_table_from_csv` using the following code
 
-     t: read_table_from_csv('my_logs01.csv', 'SFI', 1)
-     write_to_path('karts.table', t);
-     
-If you exit and reopen the app (or reassign any variables storing the table), then the following table opening scheme
-  
-    t: read_from_path('karts.table')  //in-memory only version table
+     t: read_table_from_csv('prices.csv', 'SFF', 1)
+     write_to_path('prices.table', t);
 
-produces the same value regardless of whether the table was created using the single call `build_table_from_csv` or the combination of calls `read_table_from_csv` and `write_to_path`. The same line of reasoning holds for 
 
-    t: open_table('karts.table')      //on-disk memory-mapped version of table
+To open such a table later call
 
-when opening the table on disk.
+    t: read_from_path('prices.table')  //in-memory only version table
+    or
+    t: open_table('prices.table')      //on-disk memory-mapped version of table
+
+
 
 **SCRIPTS**
 
@@ -645,6 +653,104 @@ And there's no reason we can't run SQL inside of JSON:
    
    
   Kerf can use our nicely sorted ID range to perform fast lookups even without an index. Table traits are undocumented at this point.
+  
+**LEFT JOIN**
+  
+A basic left join can be accomplished with the `left_join` function. 
+
+    t:{{a:1 2 2 3, b:10 20 30 40}}
+    u:{{a:2 3, c:1.5 3}}
+    left_join(t,u,"a")
+    
+    ┌─┬──┬───┐
+    │a│b │c  │
+    ├─┼──┼───┤
+    │1│10│nan│
+    │2│20│1.5│
+    │2│30│1.5│
+    │3│40│3.0│
+    └─┴──┴───┘
+    
+The third argument indicates the key or keys to match on. The argument is a string or an array of strings.
+
+    u:{{a:2 3, b:30 40, c:1.5 3}}
+    left_join(t,u,["a","b"])
+  
+    ┌─┬──┬───┐
+    │a│b │c  │
+    ├─┼──┼───┤
+    │1│10│nan│
+    │2│20│nan│
+    │2│30│1.5│
+    │3│40│3.0│
+    └─┴──┴───┘
+    
+If your tables don't match on column names, no sweat, use a map.
+
+    t:{{a:1 2 2 3, b:10 20 30 40}}
+    u:{{z:2 3, c:1.5 3}}
+    left_join(t, u, {'a':'z'})
+  
+    ┌─┬──┬───┐
+    │a│b │c  │
+    ├─┼──┼───┤
+    │1│10│nan│
+    │2│20│1.5│
+    │2│30│1.5│
+    │3│40│3.0│
+    └─┴──┴───┘
+    
+    
+**ASOF JOIN**
+
+One useful time-series operation is the asof join, which is predictably called using the `asof_join` function. The function accepts four arguments. The first three are the same as in the case of left join, and operate similarly. The third argument indicates columns whose items must match exactly. The fourth argument is a string or array of strings indicating column names. Typically these refer to time columns, though that is not required. 
+
+If the columns in the third argument require "exact" matches, then the columns in the fourth argument accept "fuzzy"  matches: they'll match on any value up to and including the time in question. Perhaps this is best illustrated with an example. This style of matching is useful for seeing what the latest value at a specific time was, when in reality the last update may have occured some time in the past. 
+
+    //Example taken from timestored.com
+    KeRF> trades: {{time: 07:00 08:30 09:59 10:00 12:00 16:00, sym:enum['a','a','a','a','b','a'], price: .9 1.5 1.9 2 9 10, size: 100 700 200 400 500 800}}
+    
+    ┌────────────┬───┬─────┬────┐
+    │time        │sym│price│size│
+    ├────────────┼───┼─────┼────┤
+    │07:00:00.000│  a│  0.9│ 100│
+    │08:30:00.000│  a│  1.5│ 700│
+    │09:59:00.000│  a│  1.9│ 200│
+    │10:00:00.000│  a│  2.0│ 400│
+    │12:00:00.000│  b│  9.0│ 500│
+    │16:00:00.000│  a│ 10.0│ 800│
+    └────────────┴───┴─────┴────┘
+    
+    KeRF> quotes: {{time: 08:00 09:00 10:00 11:00 12:00 13:00 14:00 15:00, sym:enum['a','b','a','b','b','a','b','a'], bid: 1 9 2 8 8.5 3 7 4}}
+    
+    ┌────────────┬───┬───┐
+    │time        │sym│bid│
+    ├────────────┼───┼───┤
+    │08:00:00.000│  a│1.0│
+    │09:00:00.000│  b│9.0│
+    │10:00:00.000│  a│2.0│
+    │11:00:00.000│  b│8.0│
+    │12:00:00.000│  b│8.5│
+    │13:00:00.000│  a│3.0│
+    │14:00:00.000│  b│7.0│
+    │15:00:00.000│  a│4.0│
+    └────────────┴───┴───┘
+    
+    KeRF> asof_join(trades, quotes, ['sym'], ['time'])                                                                                            
+    ┌────────────┬───┬─────┬────┬───┐
+    │time        │sym│price│size│bid│
+    ├────────────┼───┼─────┼────┼───┤
+    │07:00:00.000│  a│  0.9│ 100│nan│
+    │08:30:00.000│  a│  1.5│ 700│1.0│
+    │09:59:00.000│  a│  1.9│ 200│1.0│
+    │10:00:00.000│  a│  2.0│ 400│2.0│
+    │12:00:00.000│  b│  9.0│ 500│8.5│
+    │16:00:00.000│  a│ 10.0│ 800│4.0│
+    └────────────┴───┴─────┴────┴───┘
+    
+    
+
+Time-series events are necessarily logged at discrete times. Asof Join is a tool that lets us treat a discrete series as if it were continuous.
   
 **ADVANCED TYPES**
 
