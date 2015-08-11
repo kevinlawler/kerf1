@@ -502,8 +502,10 @@ The reason you might want to avoid producing relative times is that the full ran
 
 Timestamps are nanosecond granularity. By default only millisecond precision is displayed. But this is cosmetic.
 
+
       2001.01.01T01:01:01.012345678['nanosecond']
-  12345678
+    12345678
+  
   
 To extract individual parts from times, use  
 
