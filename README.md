@@ -758,6 +758,39 @@ If the columns in the third argument require "exact" matches, then the columns i
     
 
 Time-series events are necessarily logged at discrete times. Asof Join is a tool that lets us treat a discrete series as if it were continuous.
+
+**SQL (DELETE)**
+
+  The major tradeoff in using columnar storage is that deletes take O(n) time. For millions of rows in memory, this will take in the milliseconds, and so doesn't matter. For on-disk storage, you may want to avoid an architecture that incorporates repeated deletes.
+
+    KeRF> n:10**6; t:{{a:range(n), b:rand(n,100.0)}}
+    
+    ┌─┬───────┐
+    │a│b      │
+    ├─┼───────┤
+    │0│16.4771│
+    │1│27.3974│
+    │2│28.3558│
+    │3│12.2126│
+    │4│45.1148│
+    │5│81.5326│
+    │6│ 95.726│
+    │7│38.1769│
+    │.│     ..│
+    └─┴───────┘
+    
+        14 ms
+
+    KeRF> count t
+      1000000
+    
+    KeRF> delete from t where b between [0,50]
+      "t"
+    
+    KeRF> count t
+      499326
+
+
   
 **ADVANCED TYPES**
 
@@ -859,17 +892,21 @@ Examples:
 
     inf nan nil null root true false select update insert upsert delete from group
     where order limit values not hash distinct part car transpose negate eval
-    reverse ident ascend index descend which enumerate floor len atom join mod mins
-    times plus minus alter divide less equals greater rand take drop maxes match
-    lesseq greatereq equal noteq exp unique count first last avg std var min max
-    sum enlist or and explode implode add subtract negative string flatten hashed
-    enum indexed range repeat tolower toupper pow abs ceil sqrt ln log lg sin cos
-    tan asin acos atan sinh cosh tanh erf erfc timing now now_date now_time
-    kerf_from_json json_from_kerf reserved sleep open_table read_from_path
-    write_to_path lines trim int load open_socket close_socket send_async exit
-    read_table_from_csv build_table_from_csv rep out display stamp_diff dlload
-    atlas xbar fold refold mapdown mapright mapleft mapback reduce rereduce
-    converge reconverge self this def function if do while for else return
+    reverse ident ascend index descend which enumerate floor len atom map join mod
+    mins times plus minus alter divide less equals greater rand take drop maxes
+    match lesseq greatereq equal noteq exp unique count first last avg std var min
+    max sum enlist or and explode implode add subtract negative string flatten
+    hashed enum btree indexed KEY PRIMARY NONNULL UNIQUE global globals range
+    repeat tolower toupper pow abs ceil sqrt ln log lg sin cos tan asin acos atan
+    sinh cosh tanh erf erfc timing now now_date now_time kerf_from_json
+    json_from_kerf uneval reserved sleep open_table read_from_path write_to_path
+    lines trim int load run open_socket close_socket send_async send_sync exit
+    read_table_from_csv build_table_from_csv read_table_from_tsv
+    build_table_from_tsv read_table_from_delimited_file rep out display stamp_diff
+    dlload atlas xbar xkeys xvals sort shuffle left_join asof_join kerf_type
+    meta_table kerf_type_name tables delete_keys bucketed in except between fold
+    refold mapdown mapright mapleft mapback reduce rereduce converge reconverge
+    self this def function if do while for else return 
 
 
   These all work, with a few exceptions, but are mostly not yet documented.
