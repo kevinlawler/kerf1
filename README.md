@@ -776,7 +776,7 @@ Time-series events are necessarily logged at discrete times. Asof Join is a tool
     │5│81.5326│
     │6│ 95.726│
     │7│38.1769│
-    │⋮│      ⋮│
+    │.│     ..│
     └─┴───────┘
     
         14 ms
