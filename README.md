@@ -24,7 +24,7 @@ Whirlwind Language Guide:
           2.0 or 1e6 or 1.2E+01
   
   STAMP
-          2015.03.31 or 01:23:45.877 or 2015.03.31T01:23:45.877
+          2015.03.31 or 01:23:45.877 or 2015.03.31T01:23:45.123
   
   NULL
           null
@@ -499,6 +499,13 @@ From the console, pressing `ctrl+d` will exit the process. (This sends an end-of
   
   
 The reason you might want to avoid producing relative times is that the full range of useful relative dates and times exceeds a 64-bit width and so is not vectorized.
+
+Timestamps are nanosecond granularity. By default only millisecond precision is displayed. But this is cosmetic.
+
+
+      2001.01.01T01:01:01.012345678['nanosecond']
+    12345678
+  
   
 To extract individual parts from times, use  
 
