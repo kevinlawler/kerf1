@@ -3,7 +3,7 @@
 What is Kerf?
 -------------
 
-Kerf is a columnar tick database for Linux/OSX/BSD/iOS/Android. It is written in C and lets you mix JSON and SQL.
+Kerf is a columnar tick database and time-series language for Linux/OSX/BSD/iOS/Android. It is written in C and natively speaks JSON and SQL. Kerf can be used for trading platforms, feedhandlers, low-latency networking, high-volume analysis of realtime and historical data, logfile processing, and more.
 
 **Contact Kevin (e.g., licensing, feature/documentation requests):**
 
