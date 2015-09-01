@@ -662,7 +662,13 @@ Conjunction in a WHERE clause is indicated using commas, e.g.:
     │ 3│2015.07.06T16:24:57.543│  108.356│   2│
     └──┴───────────────────────┴─────────┴────┘
     
-In Kerf "and" and "or" have different meanings and will operate on the columns prior to serving them up for consideration as indices. 
+In Kerf "and" and "or" have different meanings and will operate on the columns prior to serving them up for consideration as indices. When using "or" or "and", be sure to parenthesize the subexpressions. So 
+
+    select from running where (lane = 2) or (heartrate = 108.356)
+    
+The following also works:   
+    
+    select from running where or(lane = 2, heartrate = 108.356)
 
 The supported SQL GROUP BY aggregation methods currently are: 
   
