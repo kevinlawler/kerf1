@@ -651,9 +651,20 @@ And there's no reason we can't run SQL inside of JSON:
   
   
       < > = <= >= == != <> 
+      
+Conjunction in a WHERE clause is indicated using commas, e.g.:
 
+    select from running where lane = 2, heartrate = 108.356
+    
+    ┌──┬───────────────────────┬─────────┬────┐
+    │id│stamp                  │heartrate│lane│
+    ├──┼───────────────────────┼─────────┼────|
+    │ 3│2015.07.06T16:24:57.543│  108.356│   2│
+    └──┴───────────────────────┴─────────┴────┘
+    
+In Kerf "and" and "or" have different meanings and will operate on the columns prior to serving them up for consideration as indices. 
 
-  The supported SQL GROUP BY aggregation methods currently are: 
+The supported SQL GROUP BY aggregation methods currently are: 
   
   
       min max sum count first last avg std var
