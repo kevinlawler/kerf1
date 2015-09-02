@@ -3,7 +3,7 @@
 What is Kerf?
 -------------
 
-Kerf is a columnar tick database for Linux/OSX/BSD/iOS/Android. It is written in C and lets you mix JSON and SQL.
+Kerf is a columnar tick database and time-series language for Linux/OSX/BSD/iOS/Android. It is written in C and natively speaks JSON and SQL. Kerf can be used for trading platforms, feedhandlers, low-latency networking, high-volume analysis of realtime and historical data, logfile processing, and more.
 
 **Contact Kevin (e.g., licensing, feature/documentation requests):**
 
@@ -651,9 +651,26 @@ And there's no reason we can't run SQL inside of JSON:
   
   
       < > = <= >= == != <> 
+      
+Conjunction in a WHERE clause is indicated using commas, e.g.:
 
+    select from running where lane = 2, heartrate = 108.356
+    
+    ┌──┬───────────────────────┬─────────┬────┐
+    │id│stamp                  │heartrate│lane│
+    ├──┼───────────────────────┼─────────┼────|
+    │ 3│2015.07.06T16:24:57.543│  108.356│   2│
+    └──┴───────────────────────┴─────────┴────┘
+    
+In Kerf "and" and "or" have different meanings and will operate on the columns prior to serving them up for consideration as indices. When using "or" or "and", be sure to parenthesize the subexpressions. So 
 
-  The supported SQL GROUP BY aggregation methods currently are: 
+    select from running where (lane = 2) or (heartrate = 108.356)
+    
+The following also works:   
+    
+    select from running where or(lane = 2, heartrate = 108.356)
+
+The supported SQL GROUP BY aggregation methods currently are: 
   
   
       min max sum count first last avg std var
