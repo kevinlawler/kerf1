@@ -27,11 +27,11 @@ def kerf_sync_json_send(handle, string, *args):
   wire_net = socket.htonl(wire_size)
 
   ref_net  = 1
-  code_net = code_size #socket.htonl(code_size)
+  code_net = code_size #socket.htonl(code_size & 0xffffffff )
 
   pad      = missing * '\0'
 
-  string = "bbbb bbbb xxxxi bbbbi ixxxx"
+  string = "bbbb bbbb xxxxI bbbbI Ixxxx"
   packed = struct.pack(string, 
                        0, 0, 0, 0, 
                        execution_type, response_type, display_type, 0,
@@ -48,7 +48,7 @@ def kerf_sync_json_send(handle, string, *args):
   data = recv_n(handle, 32)
 
   header = struct.unpack(string, data)
-  totality = 16 + socket.ntohl(header[8])
+  totality = 16 + socket.ntohl(header[8] & 0xffffffff )
   size =  header[14]
 
   string = recv_n(handle, size)
@@ -76,6 +76,10 @@ print response
 
 response = kerf_sync_json_send(clientsocket, "1+1;") #muted response
 print response
+
+response = kerf_sync_json_send(clientsocket, "t:{{a:1 2 3, b: 4 5 6, c: [now(), now(), now()]}}; select * from t where a = 1")
+print response
+
 
 clientsocket.close()
 
