@@ -9,6 +9,10 @@ Kerf is a columnar tick database and time-series language for Linux/OSX/BSD/iOS/
 
   kevin@getkerf.com
 
+**Guides**
+
+Kerf Screencast - Stock Basics https://youtu.be/CcJP8TX7CVc 
+
 Whirlwind Language Guide:
 -------------------------
 **TYPES**
@@ -359,7 +363,7 @@ as so:
     │ Toad│     25.0│   7│
     └─────┴─────────┴────┘
 
-The currently supported list of field identifiers is "IFSEGNZ*" integers floats strings enumerated-strings guids/uuids ips custom-datetime skipped-field. IP addresses are converted to integers using inet_pton. The custom datetime parser format is set like this
+The currently supported list of field identifiers is "IFSEYGNZ*" integers floats strings enumerated-strings nyse-taq-symbol guids/uuids ips custom-datetime skipped-field. IP addresses are converted to integers using inet_pton. The custom datetime parser format is set like this
 
     .Parse.strptime_format:'%d-%b-%y %H:%M:%S'  //format for 'Z'
 
@@ -912,19 +916,19 @@ Examples:
     reverse ident ascend index descend which enumerate floor len atom map join mod
     mins times plus minus alter divide less equals greater rand take drop maxes
     match lesseq greatereq equal noteq exp unique count first last avg std var min
-    max sum enlist or and explode implode add subtract negative string flatten
-    hashed enum btree indexed KEY PRIMARY NONNULL UNIQUE global globals range
-    repeat tolower toupper pow abs ceil sqrt ln log lg sin cos tan asin acos atan
-    sinh cosh tanh erf erfc timing now now_date now_time kerf_from_json
+    max sum enlist or and explode implode add subtract negative flatten string int
+    float char hashed enum btree indexed KEY PRIMARY NONNULL UNIQUE global globals
+    range repeat tolower toupper pow abs ceil sqrt ln log lg sin cos tan asin acos
+    atan sinh cosh tanh erf erfc timing now now_date now_time kerf_from_json
     json_from_kerf uneval reserved sleep open_table read_from_path write_to_path
-    lines trim int load run open_socket close_socket send_async send_sync exit
+    lines trim load run open_socket close_socket send_async send_sync exit
     read_table_from_csv build_table_from_csv read_table_from_tsv
-    build_table_from_tsv read_table_from_delimited_file rep out display stamp_diff
-    dlload atlas xbar xkeys xvals sort shuffle left_join asof_join kerf_type
-    meta_table kerf_type_name tables delete_keys bucketed in except between fold
-    refold mapdown mapright mapleft mapback reduce rereduce converge reconverge
-    self this def function if do while for else return 
-
+    build_table_from_tsv read_table_from_delimited_file read_table_from_fixed_file
+    rep out display stamp_diff dlload atlas xbar xkeys xvals sort shuffle left_join
+    asof_join kerf_type meta_table kerf_type_name tables delete_keys bucketed in
+    except setminus between union intersect has_column system fold refold mapdown
+    mapright mapleft mapback reduce rereduce converge reconverge self this def
+    function if do while for else return 
 
   These all work, with a few exceptions, but are mostly not yet documented.
 

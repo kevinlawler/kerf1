@@ -1,0 +1,34 @@
+//Script for parsing NYSE TAQ (Trade) Data
+//wget ftp://ftp.nyxdata.com/Historical%20Data%20Samples/Daily%20TAQ/EQY_US_ALL_TRADE_20141030.zip
+//tar xzf EQY_US_ALL_TRADE_20141030.zip
+
+file: 'taqtrade20141030'
+
+function read_taq_trades_as_table(file) {
+  heading: 1 drop trim first lines(file, 1)
+  year:  heading[4 5 6 7]
+  month: heading[0 1] 
+  day:   heading[2 3]
+  .NYSE.date_string: year # month # day
+  .NYSE.date:  eval year # '.' # month # '.' # day
+
+  attributes: {fields: 'Q*Y*IF******', 
+               widths: 9 1 16 4 9 11 1 2 16 1 1 2,
+               titles: explode(char(' '), 'time ex sym sale vol price stop cor seq source fac line'),
+               header_rows: 1,
+               'limit': INF
+              }
+
+  t: read_table_from_fixed_file(file, attributes)
+
+  t['time']:  t['time'] + .NYSE.date    //fix times to include date
+  t['price']: t['price'] / 10000  //fix fixed point pricing
+
+  return t
+}
+
+display "Parsing TAQ text file"
+t: read_taq_trades_as_table(file)
+
+display first t
+
