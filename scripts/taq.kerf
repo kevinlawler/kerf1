@@ -16,7 +16,7 @@ function read_taq_trades_as_table(file) {
                widths: 9 1 16 4 9 11 1 2 16 1 1 2,
                titles: explode(char(' '), 'time ex sym sale vol price stop cor seq source fac line'),
                header_rows: 1,
-               'limit': INF
+               line_limit: INF
               }
 
   t: read_table_from_fixed_file(file, attributes)

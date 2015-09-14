@@ -363,7 +363,7 @@ as so:
     │ Toad│     25.0│   7│
     └─────┴─────────┴────┘
 
-The currently supported list of field identifiers is "IFSEYGNZ*" integers floats strings enumerated-strings nyse-taq-symbol guids/uuids ips custom-datetime skipped-field. IP addresses are converted to integers using inet_pton. The custom datetime parser format is set like this
+The currently supported list of field identifiers is "IFSEGNZ*" integers floats strings enumerated-strings guids/uuids ips custom-datetime skipped-field. IP addresses are converted to integers using inet_pton. The custom datetime parser format is set like this
 
     .Parse.strptime_format:'%d-%b-%y %H:%M:%S'  //format for 'Z'
 
@@ -403,6 +403,19 @@ To open such a table later call
     t: open_table('prices.table')      //on-disk memory-mapped version of table
 
 
+**FIXED-WIDTH FILE LOADING**
+
+Kerf supports fixed-width file loading. The motivating use-case for this is the NYSE TAQ fixed-width format. Perhaps the best way to understand how this works is to look at the [NYSE TAQ loading example script](https://github.com/kevinlawler/kerf/blob/master/scripts/taq.kerf). In addition to the fields supported by the CSV-style readers, the fixed-width reader supports the fields "QY", representing NYSE's strange timestamp format, and an enumerated NYSE dot-delimited symbol column.
+
+To invoke the fixed-width field reader, use:
+
+
+    file:'path/to/file.ext'
+    attributes: 
+    read_table_from_fixed_file(file, attributes)
+
+
+The "attibutes" argument is map. Relevant keys are "fields widths titles header_rows line_limit". "Titles" are column titles. Some keys, such as "line_limit" are not required.
 
 **SCRIPTS**
 
@@ -437,6 +450,8 @@ The `-x` flag executes and prints its argument. The `-e` flag executes its argum
     $ ./kerf -e '1+1'
 
 The `-q` or quiet flag starts Kerf without a banner. It has no arugment. The `-p` flag opens an IPC port on its argument.
+
+Logging is enabled using the `-l` flag. Currently this logs all incoming network requests to the file `kerf.log` for possible future replay.
 
 **EXITING**
 
