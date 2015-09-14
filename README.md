@@ -411,7 +411,7 @@ To invoke the fixed-width field reader, use:
 
 
     file:'path/to/file.ext'
-    attributes: 
+    attributes: {fields: 'Q*Y*IF******',  widths: 9 1 16 4 9 11 1 2 16 1 1 2}
     read_table_from_fixed_file(file, attributes)
 
 
