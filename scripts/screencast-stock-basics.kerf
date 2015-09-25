@@ -1,0 +1,85 @@
+//Stock Basics 01 - https://www.youtube.com/watch?v=CcJP8TX7CVc
+//Stock Basics 02 - https://www.youtube.com/watch?v=Pi6FXIYvTkk
+//Sample file: http://bit.ly/taq-sample
+
+display "Don't run this, copy paste it"
+exit();
+
+t: read_from_path('taq/taq20141030.table')
+
+t: open_table('taq/taq20141030.table')
+
+//All tickers
+select unique(sym) from t
+
+//How many trades involved AAPL?
+select count(*) from t where sym='AAPL'
+
+//Value of the average trade (money changing hands)
+select avg(price * vol) as value from t
+
+//Value of the average trade for each symbol
+select avg(price * vol) as value from t group by sym
+
+//Closing price for AAPL
+select last price from t where sym = 'AAPL'
+
+//All closes for the day
+closes: select last price from t group by sym
+
+//All opens for the day
+opens: select first price from t group by sym
+
+//All average trade prices for the day (unweighted)
+select avg price from t group by sym
+
+//Average price for AAPL (unweighted)
+select avg price from t where sym='AAPL'
+
+//Volume-weighted average price for AAPL
+select sum(price*vol)/sum(vol) from t where sym='AAPL'
+
+//All volume-weighted average prices for the day
+select sum(price*vol)/sum(vol) from t group by sym
+
+//==================================================================
+
+//Build a stats table
+stats: select first(price) as open, last(price) as close, last(price) - first(price) as change, sum(price*vol)/sum(vol) as vwap from t group by sym
+
+//Which stock gained the most in price over the day?
+diffs: closes.price - opens.price; select from closes where diffs = max(diffs)
+max diffs
+select from stats where change = max(change)
+
+//Which stock lost the most?
+select from stats where change = min(change)
+//BRK A which is also one of the most valuable
+
+//Which stock lost the most as a percentage of open?
+select from stats where (change/open) = min(change/open)
+
+//Which stock gained the most as a percentage of open?
+select from stats where (change/open) = max(change/open)
+
+//Growth as percentage for all stocks
+select sym, change/open as growth from stats 
+select (last(price)-first(price))/first(price) as growth from t group by sym
+
+//Which stocks gained over the day?
+select from stats where change > 0
+
+//Which stocks closed higher than their VWAP?
+closes.price > stats.vwap
+better: select from closes where closes.price > stats.vwap
+closes.sym[which closes.price > stats.vwap]
+better.sym
+
+select from stats where close > vwap
+
+//Which stock had the highest volume (most shares traded)?
+select from (select sum(vol) from t group by sym) where vol = max(vol)
+
+//Which stock caused the most money to change hands?
+select from (select floor sum(vol*price) as value from t group by sym) where value = max(value)
+
