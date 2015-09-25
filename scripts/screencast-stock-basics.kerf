@@ -7,7 +7,7 @@ exit();
 
 t: read_from_path('taq/taq20141030.table')
 
-t: open_table('taq/taq20141030.table')
+//t: open_table('taq/taq20141030.table')
 
 //All tickers
 select unique(sym) from t
