@@ -13,6 +13,7 @@ Kerf is a columnar tick database and time-series language for Linux/OSX/BSD/iOS/
 
 Kerf Screencast - Stock Basics https://youtu.be/CcJP8TX7CVc  
 Kerf Screencast - Stock Basics II: Stats https://youtu.be/Pi6FXIYvTkk  
+Kerf Screencast - CSV & Text Tricks: https://www.youtube.com/watch?v=aDETohEScJM    
 
 Whirlwind Language Guide:
 -------------------------
