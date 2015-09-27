@@ -1,0 +1,21 @@
+//Copy/paste line by line to follow along
+
+system "wget bit.ly/bbg-syms"
+t: read_table_from_csv('bbg-syms.csv', 'SE**********F',1)
+cheap: 39500
+
+m: select from t where FEED_DELAYED_EID1 = cheap
+s: m.ID_BB_SEC_NUM_DES
+
+r: rep s
+out rep s
+1 drop rep s
+s: s join mapleft " US Equity"
+
+j: json_from_kerf s
+j: uneval s
+
+write_text('active_syms.txt', j)
+write_text('active_syms.txt', s)
+
+lines 'active_syms.txt'
