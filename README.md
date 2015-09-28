@@ -9,11 +9,16 @@ Kerf is a columnar tick database and time-series language for Linux/OSX/BSD/iOS/
 
   kevin@getkerf.com
 
+**Sales Partner:**
+
+  Our sales partner is [Briarcliff-Hall](http://briarcliff-hall.com/). For sales inquiries please email [sales@briarcliff-hall.com](mailto:sales@briarcliff-hall.com?subject=Kerf Sales Inquiry) or call (201) 572-2766.
+
+
 **Guides**
 
 Kerf Screencast - Stock Basics https://youtu.be/CcJP8TX7CVc  
 Kerf Screencast - Stock Basics II: Stats https://youtu.be/Pi6FXIYvTkk  
-Kerf Screencast - CSV & Text Tricks: https://www.youtube.com/watch?v=aDETohEScJM    
+Kerf Screencast - CSV & Text Tricks: https://youtu.be/aDETohEScJM    
 
 Whirlwind Language Guide:
 -------------------------
