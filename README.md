@@ -409,6 +409,32 @@ To open such a table later call
     or
     t: open_table('prices.table')      //on-disk memory-mapped version of table
 
+**CSV/TSV/ETC WRITING**
+
+  There are two methods for writing delimited files. The first is a convenience method for CSVs:
+
+
+    write_csv_from_table
+
+    path: 'my_logs01.csv'
+    table: my_table
+    write_csv_from_table(path, table)
+
+ 
+The second is the generalized method that lets you specify the delimiter:
+
+
+    write_delimited_file_from_table
+
+    path: 'my_logs01.csv'
+    table: my_table
+    write_delimited_file_from_table("\t", path, table) //for TSV
+
+    write_delimited_file_from_table("|",  path, table) //for PSV
+
+
+All of these methods require your data to be collected in a table before writing. This simplifies the output process considerably.
+
 
 **FIXED-WIDTH FILE LOADING**
 
