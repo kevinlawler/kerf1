@@ -1,7 +1,7 @@
 //Copy/paste line by line to follow along
 
 system "wget bit.ly/bbg-syms"
-t: read_table_from_csv('bbg-syms.csv', 'SE**********F',1)
+t: read_table_from_csv('bbg-syms', 'SE**********F',1)
 cheap: 39500
 
 m: select from t where FEED_DELAYED_EID1 = cheap
