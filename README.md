@@ -8,6 +8,10 @@ Kerf is a columnar tick database and time-series language for Linux/OSX/BSD/iOS/
 **Contact Kevin:**
 
   kevin@getkerf.com
+  
+**Website**
+
+http://getkerf.com
 
 **Sales Partner:**
 
