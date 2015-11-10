@@ -17,6 +17,13 @@ http://getkerf.com
 
   Our sales partner is [Briarcliff-Hall](http://briarcliff-hall.com/). For sales inquiries please email [sales@briarcliff-hall.com](mailto:sales@briarcliff-hall.com?subject=Kerf Sales Inquiry) or call (201) 572-2766.
 
+**Manual**
+
+The manual, currently in progress, is here: 
+
+https://github.com/kevinlawler/kerf/tree/master/manual
+
+The manual covers much more than the whirlwind guide below.
 
 **Guides**
 
