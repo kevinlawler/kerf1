@@ -452,13 +452,13 @@ All of these methods require your data to be collected in a table before writing
 
 **FIXED-WIDTH FILE LOADING**
 
-Kerf supports fixed-width file loading. The motivating use-case for this is the NYSE TAQ fixed-width format. Perhaps the best way to understand how this works is to look at the [NYSE TAQ loading example script](https://github.com/kevinlawler/kerf/blob/master/scripts/taq.kerf). In addition to the fields supported by the CSV-style readers, the fixed-width reader supports the fields "QY", representing NYSE's strange timestamp format, and an enumerated NYSE dot-delimited symbol column.
+Kerf supports fixed-width file loading. The motivating use-case for this is the NYSE TAQ fixed-width format. Perhaps the best way to understand how this works is to look at the [NYSE TAQ loading example script](https://github.com/kevinlawler/kerf/blob/master/scripts/taq.kerf). In addition to the fields supported by the CSV-style readers, the fixed-width reader supports the fields "QR", representing NYSE's strange timestamp format, and an enumerated NYSE dot-delimited symbol column.
 
 To invoke the fixed-width field reader, use:
 
 
     file:'path/to/file.ext'
-    attributes: {fields: 'Q*Y*IF******',  widths: 9 1 16 4 9 11 1 2 16 1 1 2}
+    attributes: {fields: 'Q*R*IF******',  widths: 9 1 16 4 9 11 1 2 16 1 1 2}
     read_table_from_fixed_file(file, attributes)
 
 
