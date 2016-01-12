@@ -17,7 +17,7 @@ http://kerfsoftware.com
 
   Our sales partner is [Briarcliff-Hall](http://briarcliff-hall.com/). For sales inquiries please email [sales@briarcliff-hall.com](mailto:sales@briarcliff-hall.com?subject=Kerf Sales Inquiry) or call (201) 572-2766.
 
-**Genera Questions:**
+**General Questions:**
 
   kevin@kerfsoftware.com
 
