@@ -5,10 +5,10 @@ What is Kerf?
 
 Kerf is a columnar tick database and time-series language for Linux/OSX/BSD/iOS/Android. It is written in C and natively speaks JSON and SQL. Kerf can be used for trading platforms, feedhandlers, low-latency networking, high-volume analysis of realtime and historical data, logfile processing, and more.
 
-**Contact Kevin:**
+**Demo Binaries**
 
-  kevin@kerfsoftware.com
-  
+For demo software, ask us at demo@kerfsoftware.com  
+ 
 **Website**
 
 http://kerfsoftware.com
@@ -16,6 +16,10 @@ http://kerfsoftware.com
 **Sales Partner:**
 
   Our sales partner is [Briarcliff-Hall](http://briarcliff-hall.com/). For sales inquiries please email [sales@briarcliff-hall.com](mailto:sales@briarcliff-hall.com?subject=Kerf Sales Inquiry) or call (201) 572-2766.
+
+**Genera Questions:**
+
+  kevin@kerfsoftware.com
 
 **Manual**
 
