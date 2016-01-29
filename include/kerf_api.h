@@ -67,6 +67,7 @@ extern KERF kerf_api_nil();
 // accessors/mutators
 extern KERF kerf_api_show(KERF x);
 extern int64_t kerf_api_len(KERF x);
+extern int64_t  kerf_api_nanos_from_stamp(void * x);  // needs documentation
 extern KERF kerf_api_get(KERF x, KERF index);
 extern KERF kerf_api_set(KERF x, KERF index, KERF replacement);
 extern KERF kerf_api_append(KERF x, KERF y);
@@ -76,3 +77,10 @@ extern KERF kerf_api_interpret(KERF charvec);
 extern KERF kerf_api_call_nilad(KERF func);
 extern KERF kerf_api_call_monad(KERF func, KERF x);
 extern KERF kerf_api_call_dyad(KERF func, KERF x, KERF y);
+
+
+// event handling
+extern void kerf_api_register_for_eventing(void** p_kerf_hook, int (*p_func)(void *) );
+extern void kerf_api_deregister_for_eventing(void* kerf_hook);
+extern void kerf_api_notify_event(void *kerf_hook);
+extern void kerf_api_denotify_event(void *kerf_hook);
