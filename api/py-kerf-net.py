@@ -3,6 +3,8 @@ import json
 import struct
 import binascii
 import math
+import signal
+import sys
 
 def recv_n(handle, wanted):
   data = ''
@@ -61,9 +63,14 @@ def kerf_sync_json_send(handle, string, *args):
 
   return obj
 
+def kerf_signal_handler(signal, frame):
+  print('Closing socket on Ctrl+C...')
+  clientsocket.close()
 
 server = 'localhost'
 port = 1234
+
+signal.signal(signal.SIGINT, kerf_signal_handler)
 
 clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 clientsocket.connect((server, port))
@@ -79,7 +86,6 @@ print response
 
 response = kerf_sync_json_send(clientsocket, "t:{{a:1 2 3, b: 4 5 6, c: [now(), now(), now()]}}; select * from t where a = 1")
 print response
-
 
 clientsocket.close()
 

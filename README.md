@@ -303,8 +303,6 @@ Some operations yield array-wise results.
     is the same as 
       {{id:[1], time:[now()], brightness:[48.6]}}
     is the same as 
-      INSERT INTO {{id, time, brightness}} VALUES (1, now(), 48.6)       //single insert
-    is the same as 
       INSERT INTO {{id, time, brightness}} VALUES [[1], [now()], [48.6]] //bulk insert/append
     is the same as
       INSERT INTO {{id, time, brightness}} VALUES {id:1, time:now(), brightness:48.6}   //insert map
@@ -1030,5 +1028,6 @@ Kerf uses [libcsv](http://sourceforge.net/projects/libcsv/).
   Certain objects will intern strings locally. Kerf data structures use
   optimized hash tables and b-trees. All Kerf objects serialize automatically
   and use the same [decompressed] representation in-memory, on-disk, and over
-  the network. Kerf uses  By default the PRNG is initialized with a nondeterministic seed.
-  By default times are UTC.
+  the network. IPC is compressed when it would lower transfer times. 
+  By default the PRNG is initialized with a nondeterministic seed. By default
+  times are UTC.
