@@ -1016,7 +1016,6 @@ Examples for average, standard deviation, and variance (avg, std, var).
   
 **LEGAL**
 
-Kerf uses [libcsv](http://sourceforge.net/projects/libcsv/).
 
 **MISC LANGUAGE SPECS**
 
