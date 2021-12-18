@@ -1,0 +1,140 @@
+//////////////////////////////////////////////////////////////////////////////
+//
+// Automated tests of the Kerf Native API
+//
+// This script will run each of the documented public functions
+// exposed by the Kerf binary for purposes of the foreign-function interface.
+// Tests are executed several times to reduce the chance of missing
+// intermittent failures.
+//
+// John Earnest
+//
+//////////////////////////////////////////////////////////////////////////////
+
+def assert(x, expected) {
+	if (not x match expected) {
+		out " - test FAILED: \n"
+		out "    expected:  "#(rep expected)#"\n"
+		out "    got:       "#(rep x)#"\n"
+		exit(1)
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////////
+//
+// Tests
+//
+//////////////////////////////////////////////////////////////////////////////
+
+library: "native.dylib"
+
+demo_append: dlload(library, "demo_append", 1)
+def test_append() {
+	assert(demo_append([]),     [54])
+	assert(demo_append(1 2 3),  1 2 3 54)
+	assert(demo_append(5),      5 54)
+	a: 4 5 6
+	assert(demo_append(a),      4 5 6 54)
+	assert(a,                   4 5 6)
+}
+
+demo_dyad: dlload(library, "demo_dyad", 1)
+def test_call_dyad() {
+	assert(demo_dyad({[x,y] [x,y,x+y,x*y]}), 3 5 8 15)
+	assert(demo_dyad({[x,y] x+(3 take y)}),  8 8 8)
+}
+
+demo_monad: dlload(library, "demo_monad", 1)
+def test_call_monad() {
+	assert(demo_monad({[x] [x,0,2*x,x*x]}),  17 0 34 289)
+	assert(demo_monad({[x] 3 take x}),       17 17 17)
+}
+
+demo_nilad: dlload(library, "demo_nilad", 1)
+def test_call_nilad() {
+	a:[25]
+	assert(demo_nilad({[] a[0]+:1; [3,2,a[0]]}), 3 2 26)
+}
+
+demo_get: dlload(library, "demo_get", 2)
+def test_get() {
+	assert(demo_get("ABCD", 2),        `"C")
+	assert(demo_get(1 3 7 10, 2 0 2),  7 1 7)
+}
+
+demo_interpret: dlload(library, "demo_interpret", 0)
+def test_interpret() {
+	assert(demo_interpret(), 0 2 4)
+}
+
+demo_len: dlload(library, "demo_len", 1)
+def test_len() {
+	assert(demo_len("ABCDE"), [5])
+	assert(demo_len(0),       [1])
+	assert(demo_len([]),      [0])
+}
+
+demo_new_kerf: dlload(library, "demo_new_kerf", 2)
+def test_new_kerf() {
+	assert(demo_new_kerf(70000, 5), 70000 70001 70002 70003 70004)
+	assert(kerf_type_name demo_new_kerf(6, 3), "integer vector")
+}
+
+demo_new_stamp: dlload(library, "demo_new_stamp", 1)
+def test_new_stamp() {
+	assert(demo_new_stamp(3000000), 00:00:00.003)
+	assert(demo_new_stamp(3000000)[["year", "month", "day"]], 1970 1 1)
+}
+
+demo_set: dlload(library, "demo_set", 3)
+def test_set() {
+	assert(demo_set(1 2 3, 1, 99), 1 99 3)
+	a: 98 97 96
+	assert(demo_set(a, 0, 999), 999 97 96)
+	assert(a, 98 97 96)
+}
+
+demo_attr_sorted_get: dlload(library, "demo_attr_sorted_get", 1)
+def test_attr_sorted() {
+	assert(demo_attr_sorted_get(1 2 3), true)
+	assert(demo_attr_sorted_get(3 1 2), false)
+}
+
+demo_attr_bytes_set: dlload(library, "demo_attr_bytes_set", 1)
+def test_attr_bytes() {
+	assert(rep demo_attr_bytes_set("ABCDE"), "0x4142434445")
+}
+
+demo_attr_disk_get: dlload(library, "demo_attr_disk_get", 1)
+def test_attr_disk() {
+	assert(demo_attr_disk_get {{foo: 1 2}}, 0);
+	breakfast: create_table_from_csv("breakfast.bin", "_breakfast.csv", "SI", 1)
+	assert(demo_attr_disk_get breakfast, 1);
+}
+
+//////////////////////////////////////////////////////////////////////////////
+//
+// Main Script
+//
+//////////////////////////////////////////////////////////////////////////////
+
+out "began native API tests...\n"
+for(i: 0; i < 5; i: i+1) {
+	test_append()
+	test_call_dyad()
+	test_call_monad()
+	test_call_nilad()
+	test_get()
+	test_interpret()
+	test_len()
+	test_new_kerf()
+	test_new_stamp()
+	test_set()
+	test_attr_sorted()
+	test_attr_bytes()
+	test_attr_disk()
+
+	out " - test iteration "#(rep i)#"\n"
+}
+out "...native tests complete.\n"
+exit(0)

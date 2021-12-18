@@ -1,0 +1,24 @@
+// detex to dump raw text from the refcard for starters. 
+// need to add in _'s by hand (could probably do with a join)
+// load it up
+HELP: read_table_from_delimited_file("|","helptool.pipes","SSSS",1)
+// save it, 
+write_text("helper.txt",HELP);
+// then fix the json to make it a giant C string in help.h
+//  remove the trailing thing, escape the quotes, escape the \/'s, add {}
+
+def helptool(x){
+ outt:  (select unique subject from .Help);
+ if(len(x)=0) {
+  return(outt)
+  } else {
+  subjects: (flatten xvals select unique subject from .Help);
+   if(in(enlist(x),subjects)[0]) {
+      return(select usage,description from .Help where subject=x);
+   } else {
+     return(select usage,description from .Help where namev=x);
+  }
+ }
+}
+
+"{outt:  (select unique subject from .Help);  if(len($1)=0) {   return(outt)   } else {   subjects: (flatten xvals select unique subject from .Help);    if(in(enlist($1),subjects)[0]) {       return(select usage,description from .Help where subject=$1);    } else {      return(select usage,description from .Help where namev=$1);   }  }}"

@@ -1,0 +1,325 @@
+\documentclass[twocolumn]{article}
+\usepackage{geometry}
+\usepackage[usenames,dvipsnames,table]{xcolor}
+\usepackage{float}
+\usepackage{textcomp}
+\restylefloat{table}
+
+%\definecolor{tableHeaderColor}{gray}{0.7}
+%\definecolor{tableRowColor1}{gray}{0.9}
+%\definecolor{tableRowColor2}{gray}{1.0}
+\colorlet{tableHeaderColor}{cyan!50}
+\colorlet{tableRowColor1}{cyan!15}
+\colorlet{tableRowColor2}{cyan!0}
+
+\pagenumbering{gobble}
+\geometry{
+	letterpaper,
+	left=0.5cm,
+	right=0.5cm,
+	top=0.75cm,
+	bottom=0.75cm
+}
+
+\newcommand{\caret}{\textasciicircum}
+\newcommand{\mytilde}{\textasciitilde }
+\newcommand{\mygrave}{\textasciigrave }
+\newcommand{\sa}[1]{ {\hfill #1} }
+
+\newcommand{\mlc}[2][c]{%
+  \begin{tabular}[#1]{@{}l@{}}#2\end{tabular}}
+
+\newcommand{\tabletitle}[2]{%
+	\hline
+	\multicolumn{#1}{|c|}{ \cellcolor{tableHeaderColor} \textbf{#2}} \\
+	\hline}
+\newcommand{\tablefooter}[2]{%
+	\multicolumn{#1}{|c|}{\cellcolor{tableRowColor2} #2 }\\}
+
+\newcommand{\byex}[2]{%
+	\multicolumn{1}{|l}{\ttfamily\small{#1}}&{\ttfamily\small{\is #2}} \\}
+\newcommand{\is}{{\color{cyan}$\rightarrow$} }
+
+\newenvironment{desctable}[2]{
+	\begin{table}[H]
+	\rowcolors{1}{tableRowColor2}{tableRowColor1} \mcinherit
+	\begin{tabular}{| >{\ttfamily #2}m{4.0cm} | >{\small}m{4.75cm} |}
+	\tabletitle{2}{#1}
+%	\cellcolor{tableHeaderColor} {\textnormal{Name}} &
+%	\cellcolor{tableHeaderColor} Behavior \\
+}
+{
+	\hline
+	\end{tabular}
+	\end{table}
+}
+
+\newenvironment{refbox}[1]{
+	\begin{table}[H]
+	\rowcolors{1}{tableRowColor1}{tableRowColor2}
+	\begin{tabular}{| >{\small}m{9.25cm} |}
+	\tabletitle{1}{#1}
+}
+{
+	\hline
+	\end{tabular}
+	\end{table}
+}
+
+
+%%%%%%%%%%%%%%%%%%
+%fix tables with multicolumn commands inside to respect alternating colors
+\let\oldmc\multicolumn
+\makeatletter
+\newcommand{\mcinherit}{% Activate \multicolumn inheritance
+  \renewcommand{\multicolumn}[3]{%
+    \oldmc{##1}{##2}{\ifodd\rownum \@oddrowcolor\else\@evenrowcolor\fi ##3}%
+  }}
+\makeatother
+%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+{\huge KeRF Reference Card}
+
+\begin{table}[H]
+	\rowcolors{1}{tableRowColor2}{tableRowColor1} \mcinherit
+	\begin{tabular}{| >{\ttfamily\small}m{4.25cm} >{\small}m{4.50cm} |}
+	\tabletitle{2}{Lists And Strings}
+%	\cellcolor{tableHeaderColor} {\textnormal{Name}} &
+%	\cellcolor{tableHeaderColor} Behavior \\
+	ascend x                  & Ascending indices / grade up. \\
+	bucketed(x, y)             & Bucket y Values by x. \\
+	\byex{car "ABCD"}{\mygrave"A"}
+	\byex{cdr "ABCD"}{"BCD"}
+	combinations(x,n,repeats)  & N-long combinations. \\
+	count x                   & Number of elements in x. \\
+	cross(x, y)                & Cartesian product of lists. \\
+	deal(x, y)                 & x unique random items of y. \\
+	descend x                 & Descending indices / grade dn. \\
+	\byex{distinct "BBAAB"}{"BA"}
+	\byex{drop(2, "ABCD")}{"CD"}
+	\byex{enlist [1,2]}{[[1,2]]}
+	\byex{enumerate 5}{[0, 1, 2, 3, 4]}
+	\byex{except(1 2 2 3, 2)}{[1, 3]}
+	\byex{explode(\mygrave"X", "AXBCXDX")}{["A", "BC", "D", ""]}
+	filter(f, x)               & Items where f(x) is truthy. \\
+	\byex{first(2, "ABCD")}{"AB"}
+	\byex{flatten [1, 2 3, 4 5 6]}{[1, 2, 3, 4, 5, 6]}
+	\byex{implode("X", "ABCD")}{"AXBXCXD"}
+	\byex{in("W0D", "WORDS")}{[1, 0, 1]}
+	\byex{intersect("ABC","BCDB")}{"BC"}
+	\byex{join(1, 2)}{[1, 2]}
+	\byex{last(2, "ABCD")}{"CD"}
+	order x                   & Equivalent to \textless\textless{}x. \\
+	\byex{parse\_int("100", 16)}{256}
+	\byex{parse\_float "2.3e4"}{23000.0}
+	\byex{part "ABBAB"}{\{\mygrave"A":0 3, \mygrave"B":1 2 4\}}
+	permutations(x, repeats)    & Optional repeat elements. \\
+	powerset x                & All subsets of x. \\
+	\byex{range 5}{[0, 1, 2, 3, 4]}
+	\byex{range(5, 10)}{[5, 6, 7, 8, 9]}
+	\byex{range(5, 6, 0.2)}{[5, 5.2, 5.4, 5.6, 5.8]}
+	\byex{repeat(3, "A")}{["A", "A", "A"]}
+	\byex{reverse "ABCD"}{"DCBA"}
+	\byex{search(`"C", "ABCD")}{2}
+	\byex{shift(2, "ABCDE", \mygrave"X")}{"XXABC"}
+	shuffle x                 & Randomly permute x. \\
+	\byex{sort "BCADDFA"}{"AABCDDF"}
+	\byex{split(0 2 3, "ABCDE")}{["AB", "C", "DE"]}
+	\byex{trim "  AB C "}{"AB C"}
+	\byex{union("ABC", "BCDB")}{"ABCD"}
+	\byex{which 0 1 1 0 0 1}{[1, 2, 5]}
+	\hline
+	\end{tabular}
+\end{table}
+
+\begin{desctable}{Tables And Maps}{\small} 
+	asof\_join(x, y, k1, k2)  & Left join x and y on k1 as of k2. \\
+	left\_join(x, y, keys)    & Left join x and y on k. \\
+	has\_column(x, name)      & Does table have a given column? \\
+	has\_key(x, key)          & Check for valid index. \\
+	tables()                  & List names of loaded tables. \\
+	\byex{map(["A", "B"],[1, 2])}{\{"A":1, "B":2\}}
+	\byex{table(["A", "B"],[1, 2])}{\{\{"A":1, "B":2\}\}}
+	\byex{xkeys \{"A":1, "B":2\}}{["A", "B"]}
+	\byex{xvals \{"A":1, "B":2\}}{[1, 2]}
+\end{desctable}
+
+\begin{desctable}{Aggregates}{\small}
+	rsum(list)           & Running sum. \texttt{+ unfold list}.\\
+	count\_nonnull(list) & How many items are not null? \\
+	count\_null(list)    & How many items are null? \\
+	bars(x,y)            & \texttt{x * floor y/x}; also stamps. \\
+	\hline
+	\multicolumn{2}{|c|}{ \cellcolor{tableHeaderColor} List Statistics} \\
+	\hline
+	\tablefooter{2}{\ttfamily\footnotesize avg max median min std sum var }
+	\hline
+	\multicolumn{2}{|c|}{ \cellcolor{tableHeaderColor} Sliding Windows (width, list)} \\
+	\hline	
+	\tablefooter{2}{\ttfamily\footnotesize mavg mcount mmax mmin msum }
+	\hline
+\end{desctable}
+
+\begin{desctable}{Math}{\small}
+	between(x, y)                 & Is x between y[0] and y[1]? \\
+	dotp(x, y)                    & Dot/Scalar product of x and y. \\
+	log(x)                        & $\log_{10}(x)$. \\
+	log(x, y)                     & $\log_{x}(y)$. \\
+	lsq(A, B) \sa{\textbackslash} & Solve $Ax = B$ for x. \\
+	minv(A)                       & Inverse of matrix A. \\
+	mmul(A, B)                    & Multiply matrices A and B. \\
+	rand()                        & 1 random float [0, 1). \\
+	rand(x)                       & 1 random integer [0, x). \\
+	rand(x, y) \sa{?}             & x random integers [0, y). \\
+	stamp\_diff(x, y)             & Stamp difference in ns. \\
+	transpose(x) \sa{+}           & Matrix transpose of x. \\
+	\hline
+	\tablefooter{2}{\ttfamily\footnotesize + - / {*} \% ** ! \& | \mytilde{} : = == < > <= >= != <> abs acos add}
+	\tablefooter{2}{\ttfamily\footnotesize asin atan ceil cos cosh divide erf erfc exp floor lg ln}
+	\tablefooter{2}{\ttfamily\footnotesize mod negative pow sin sinh sqrt subtract tan tanh times and}
+	\tablefooter{2}{\ttfamily\footnotesize equal greater greatereq less lesseq match not noteq or}
+\end{desctable}
+
+\begin{desctable}{Miscellaneous}{\small}
+	atom(x)             & Is x an atom? \\
+	checksum(x)         & Calculate hashcode of x. \\
+	eval(x)             & Evaluate the string x. \\
+	ifnull(x)           & Is x null? \\
+	kerf\_type(x)       & Numeric typecode of x. \\
+	kerf\_type\_name(x) & Human-readable type name. \\
+	now()               & Current date-time. \\
+	now\_date()         & Current date. \\
+	now\_time()         & Current time. \\
+	rep(x)              & String representation of x. \\
+	shell(x)            & Execute x as a shell command. \\
+	seed\_prng(x)       & Seed the RNG used by \texttt{rand}. \\
+	sleep(x)            & Wait at least x milliseconds. \\
+	timing(x)           & Enable or disable time logging. \\
+	\hline
+	\multicolumn{2}{|c|}{ \cellcolor{tableHeaderColor} Casting/Conversion} \\
+	\hline
+	\tablefooter{2}{\ttfamily\footnotesize atlas char float hashed indexed int stamp string }
+	\tablefooter{2}{\ttfamily\footnotesize json\_from\_kerf kerf\_from\_json type\_null zip unzip }
+\end{desctable}
+
+\begin{desctable}{IPC}{\small}
+	open\_socket(host, port) & Host and port must be strings. \\
+	close\_socket(handle)     & Close an IPC socket handle. \\
+	send\_async(handle, expr) & Doesn't block, Returns 1. \\
+	send\_sync(handle, expr)  & Returns \texttt{eval(y)} on remote host. \\
+	\hline
+	\tablefooter{2}{Launch with \texttt{-p <portnumber>} to start IPC server}
+\end{desctable}
+
+\begin{desctable}{Combinators}{\small}
+	u converge x                            & Apply u to x until the value repeats or stops changing. \\
+	x u converge y                          & Apply u to x, y times. \\
+	\mlc{u deconverge x \\ x u deconverge x}  & As \texttt{converge}, but gather intermediate results. \\
+	\mlc{b fold x\\x b fold y       }       & Apply b between elements of x. \\
+	\mlc{b mapback x\\x b mapback y }       & Apply b between elements of x and their predecessor. \\
+	\mlc{u mapdown x\\x b mapdown y }       & Apply u/b to each element of x (and each of y if present). \\
+	x b mapleft y                           & Apply b to y and each of x. \\
+	x b mapright y                          & Apply b to x and each of y. \\
+	\mlc{b unfold x\\x b unfold y   }       & As \texttt{fold}, but gather intermediate results. \\
+\end{desctable}
+
+\begin{desctable}{IO and Scripting}{\scriptsize}
+	load(filename)               & Read and execute Kerf source. \\
+	exit(statusCode)             & Exit, status code is optional. \\
+	reset(dropArgs)              & Reset workspace. \\
+	out(string)                  & Print a raw string x to stdout. \\
+	display(x)                   & Prettyprint x to stdout. \\
+	dir\_ls(path, showFullPaths) & List the files in a directory path. \\
+	mkdir(path)                  & Create a directory path. \\
+	lines(filename, limit)       & Read lines of a text file. \\
+	open\_table(filename)        & \texttt{mmap} serialized Kerf table. \\
+	read\_from\_path(filename)   & Load a serialized Kerf object. \\
+	read\_striped\_from\_path(dirname) & Load a striped Kerf object. \\
+	read\_table\_from\_csv (filename,fields,hrows) & Load a CSV file into a table. \\
+	read\_table\_from\_delimited\_file (delim,filename,fields,hrows) & Load a delimited file into a table. \\
+	read\_table\_from\_fixed\_file (filename,attr) & Load a fixed-width file. \texttt{attr} contains field types, widths, etc. \\
+	read\_table\_from\_tsv (filename,fields,hrows) & Load a TSV file into a table with optional header rows. \\
+	write\_csv\_from\_table (filename,table) & Write a table to a CSV file. \\
+	write\_delimited\_file\_from\_table (delim,filename,table) & Write a table to a delimited file. \\
+	write\_striped\_to\_path (dirname,x) & Write a striped Kerf object. \\
+	write\_text(filename, x)     & Serialize x to a file as text/JSON. \\
+	write\_to\_path(filename, x) & Serialize x to a file as binary. \\
+	append\_table\_from\_csv (tablepath,csvpath,fields,hrows) & Append to disk-backed table. \\
+	append\_table\_from\_fixed\_file (tablepath,fixedpath,attr) & Append to disk-backed table. \\
+	append\_table\_from\_psv (tablepath,psvpath,fields,hrows) & Append to disk-backed table. \\
+	append\_table\_from\_tsv (tablepath,tsvpath,fields,hrows) & Append to disk-backed table. \\
+	create\_table\_from\_csv (tablepath,csvpath,fields,hrows) & New disk-backed table \\
+	create\_table\_from\_fixed\_file (tablepath,fixedpath,attr) & New disk-backed table. \\
+	create\_table\_from\_psv (tablepath,psvpath,fields,hrows) & New disk-backed table. \\
+	create\_table\_from\_tsv (tablepath,tsvpath,fields,hrows) & New disk-backed table. \\
+	dlload(filename,funcname,argc) & Load a dynamic library. \\
+\end{desctable}
+
+\begin{refbox}{SQL Syntax}
+\texttt{INSERT INTO table VALUES data}\\
+\texttt{DELETE FROM table [ WHERE condition ]}\\
+\texttt{SELECT field1, field2 [ AS name ] ... FROM table \hspace{4cm} [ WHERE condition ] [ GROUP BY aggregate ]}\\
+\texttt{UPDATE table SET field1:val1, field2:val2 ... \hspace{4cm} [ WHERE condition ] [ GROUP BY aggregate ]}\\
+\end{refbox}
+
+% 2.25
+
+\begin{table}[H]
+	\rowcolors{1}{tableRowColor2}{tableRowColor1}
+	\begin{tabular}{| >{\ttfamily\footnotesize\centering\arraybackslash}m{2.0cm} | >{\ttfamily\footnotesize\centering\arraybackslash}m{2.0cm} | >{\ttfamily\small}m{2.75cm} | >{\ttfamily\footnotesize\centering\arraybackslash}m{1.25cm} | }
+		\tabletitle{4}{Kerf types}
+		\cellcolor{tableHeaderColor} {\textnormal{Example}} &
+		\cellcolor{tableHeaderColor} {\texttt{type\_null}} &
+		\cellcolor{tableHeaderColor} {\texttt{kerf\_type\_name}} &
+		\cellcolor{tableHeaderColor} {\texttt{kerf\_type}} \\
+		{[2000.01.01]}     & 00:00:00.000  & stamp vector     & -4 \\
+		{[0.1]}            & nan           & float vector     & -3 \\
+		{[1]}              & NAN           & integer vector   & -2 \\
+		"A"                & \mygrave" "   & character vector & -1 \\
+		\{[x] 1+x\}        & null          & function         &  0 \\
+		\textasciigrave{}A & \mygrave" "   & character        &  1 \\
+		1                  & NAN           & integer          &  2 \\
+		0.1                & nan           & float            &  3 \\
+		2000.01.01         & 00:00:00.000  & stamp            &  4 \\
+		()                 & null          & null             &  5 \\
+		{[]}               & null          & list             &  6 \\
+		\{a:1\}            & null          & map              &  7 \\
+		\#["a"]            & null          & enum             &  8 \\
+		=[1]               & null          & sort             &  9 \\
+		\{\{a:1\}\}        & null          & table            & 10 \\
+		\hline
+	\end{tabular}
+\end{table}
+
+\begin{desctable}{\texttt{fixed\_file} Attributes}{\small}
+	fields          & Field specifier string. \\
+	widths          & List of column widths in chars. \\
+	line\_limit     & Max row count. \\
+	titles          & List of column names. \\
+	header\_rows    & How many rows are headers? \\
+	line\_separated & Are rows separated by newlines? \\
+\end{desctable}
+
+\begin{table}[H]
+	\rowcolors{1}{tableRowColor2}{tableRowColor1}
+	\begin{tabular}{| >{\ttfamily\footnotesize\centering\arraybackslash}m{1.0cm} | >{\small}m{7.75cm} |}
+		\tabletitle{2}{Delimited/Fixed-Width Field Specifiers}
+		\cellcolor{tableHeaderColor} {\textnormal{Symbol}} &
+		\cellcolor{tableHeaderColor} {\textnormal{Datatype}} \\
+		I          & Integer \\
+		F          & Float \\
+		S          & String \\
+		E          & Enumerated String \\
+		G          & IETF RFC-4122 UUID \\
+		N          & IP address as parsed by \texttt{inet\_pton()} \\
+		A           & Nanoseconds since Unix Epoch (Timestamp) \\
+		Z/Y        & Custom. See \texttt{.Parse.strptime\_format} \\
+		\texttt{*} & Skipped field \\
+		R          & NYSE TAQ symbol (Fixed-width only) \\
+		Q          & NYSE TAQ time format (Fixed-width only) \\
+		\hline
+	\end{tabular}
+\end{table}
+
+\end{document}

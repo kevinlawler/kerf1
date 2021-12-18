@@ -1,0 +1,63 @@
+// assuming you have a decent .Help file, add to the table here
+missing: except(reserved(),(flatten xvals  select namev from .Help ))
+HELPT: .Help
+insert into HELPT values {subject:'misc',namev:'help',usage:'help(x)',description:'prints help table on subject string x.'}
+insert into HELPT values {subject:'misc',namev:'meta_table',usage:'meta_table(x)',description:'meta information on table x.'}
+insert into HELPT values {subject:'math',namev:'minus',usage:'minus(x,y)',description:'subtracts y from x.'}
+insert into HELPT values {subject:'math',namev:'subtract',usage:'subtract(x,y)',description:'subtracts y from x.'}
+insert into HELPT values {subject:'math',namev:'times',usage:'times(x,y), *',description:'multiply x by y.'}
+insert into HELPT values {subject:'math',namev:'add',usage:'add(x,y), +',description:'add x to y.'}
+insert into HELPT values {subject:'math',namev:'log',usage:'log(x)',description:'log base 10 of x.'}
+insert into HELPT values {subject:'math',namev:'log',usage:'log(x,y)',description:'log base x of y.'}
+insert into HELPT values {subject:'math',namev:'ln',usage:'ln(x)',description:'natural logarithm of x.'}
+insert into HELPT values {subject:'math',namev:'divide',usage:'divide(x,y), /',description:'divide x by y.'}
+insert into HELPT values {subject:'math',namev:'std',usage:'std(x)',description:'population standard deviation of x.'}
+insert into HELPT values {subject:'math',namev:'sum',usage:'sum(x)',description:'sum of x.'}
+insert into HELPT values {subject:'math',namev:'min',usage:'min(x)',description:'minimum of x.'}
+insert into HELPT values {subject:'math',namev:'max',usage:'max(x)',description:'maximum of x.'}
+insert into HELPT values {subject:'math',namev:'med',usage:'med(x)',description:'median of x.'}
+insert into HELPT values {subject:'math',namev:'exp',usage:'exp(x)',description:'natural exponential function of x.'}
+insert into HELPT values {subject:'math',namev:'exp',usage:'exp(x,y)',description:'raise x to power y.'}
+insert into HELPT values {subject:'math',namev:'pow',usage:'pow(x,y), **',description:'raise x to power y.'}
+insert into HELPT values {subject:'math',namev:'abs',usage:'abs(x)',description:'absolute value of x.'}
+insert into HELPT values {subject:'math',namev:'sqrt',usage:'sqrt(x)',description:'square root of x.'}
+insert into HELPT values {subject:'math',namev:'lg',usage:'lg(x)',description:'base 2 logarithm of x.'}
+insert into HELPT values {subject:'math',namev:'var',usage:'var(x)',description:'population variance of x.'}
+insert into HELPT values {subject:'math',namev:'negate',usage:'negate(x)',description:'negative of x.'}
+insert into HELPT values {subject:'math',namev:'ceil',usage:'ceil(x)',description:'smallest integer following x.'}
+insert into HELPT values {subject:'math',namev:'floor',usage:'floor(x)',description:'largest integer preceding x.'}
+insert into HELPT values {subject:'math',namev:'erf',usage:'erf(x)',description:'Gauss error function of x.'}
+insert into HELPT values {subject:'math',namev:'erfc',usage:'erfc(x)',description:'1-erf(x).'}
+insert into HELPT values {subject:'strings',namev:'toupper',usage:'toupper(x)',description:'upper case of string x.'}
+insert into HELPT values {subject:'strings',namev:'tolower',usage:'tolower(x)',description:'lower case of string x.'}
+insert into HELPT values {subject:'strings',namev:'kerf_from_json',usage:'kerf_from_json(x)',description:'turns JSON string x into a kerf object.'}
+insert into HELPT values {subject:'strings',namev:'json_from_kerf',usage:'json_from_kerf(x)',description:'turns kerf object x into a JSON string.'}
+insert into HELPT values {subject:'strings',namev:'string',usage:'string(x)',description:'turns kerf numeric object x into string representation.'}
+insert into HELPT values {subject:'strings',namev:'ceil',usage:'ceil(x)',description:'upper case of string x.'}
+insert into HELPT values {subject:'strings',namev:'floor',usage:'floor(x)',description:'lower case of string x.'}
+insert into HELPT values {subject:'list',namev:'len',usage:'len(x)',description:'length of list x.'}
+insert into HELPT values {subject:'list',namev:'take',usage:'take(x)',description:'the first x elements of y.'}
+insert into HELPT values {subject:'truthy',namev:'isnull',usage:'isnull(x)',description:'is x null.'}
+insert into HELPT values {subject:'truthy',namev:'ifnull',usage:'ifnull(x)',description:'is x null.'}
+insert into HELPT values {subject:'functions',namev:'function',usage:'function name()',description:'defines function name().'}
+insert into HELPT values {subject:'functions',namev:'def',usage:'def name()',description:'defines function name().'}
+insert into HELPT values {subject:'functions',namev:'lambda',usage:'fun:{[x]...}',description:'defines function of x bound to name fun.'}
+insert into HELPT values {subject:'functions',namev:'return',usage:'return(x)',description:'returns value x.'}
+insert into HELPT values {subject:'combinator',namev:'refold',usage:'b refold x',description:'As fold, but gather intermediate results.'}
+insert into HELPT values {subject:'combinator',namev:'refold',usage:'x b refold y',description:'As fold, but gather intermediate results.'}
+insert into HELPT values {subject:'combinator',namev:'reduce',usage:'x b reduce y',description:'apply b between elements of x.'}
+insert into HELPT values {subject:'combinator',namev:'reduce',usage:'b reduce x',description:'apply b between elements of x.'}
+insert into HELPT values {subject:'combinator',namev:'mapcores',usage:'b mapcores x',description:'same as mapdown, applied to multiple cores.'}
+insert into HELPT values {subject:'combinator',namev:'mapcores',usage:'x b mapcores y',description:'same as mapdown, applied to multiple cores.'}
+
+
+write_text("helper2.txt",HELPT);
+// remove ifnull with subject types
+
+//  rereduce    
+
+// unique   mmin msum mcount mavg mmax  
+// btree stamp hashed enum  hash index atlas 
+
+// and or 
+// do if while for else 

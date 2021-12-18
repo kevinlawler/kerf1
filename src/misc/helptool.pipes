@@ -1,0 +1,142 @@
+subject|namev|usage|description
+list|	ascend|ascend(x) <          | Ascending indices / grade up. 
+list|	bucketed|bucketed(x,y)             | Bucket y Values by x. 
+list|	car|car(x)                    | First element of x. 
+list|	cdr|cdr(x)                    | All except first element of x. 
+list|	combinations|combinations(x,n,repeats) | N-long combinations. 
+list|	count|count(x)                  | Number of elements in x. 
+list|	cross|cross(x,y)                | Cartesian product of lists. 
+list|	deal|deal(x,y)                 | x unique random items of y. 
+list|	descend|descend(x) >         | Descending indices / grade dn. 
+list|	distinct|distinct(x)        | First instance of elements of x. 
+list|	drop|drop(x,y)          | Remove first x elements from y. 
+list|	enlist|enlist(x)                 | Wrap x in a list. 
+list|	enumerate|enumerate(x)   | Range [0,x) / map keys. 
+list|	except|except(x,y)               | Remove all y from x. 
+list|	explode|explode(x,y)              | Split y at instances of x. 
+list|	filter|filter(f,x)               | Items where f(x) is truthy. 
+list|	first|first(x,y)     | Take first x elements of y. 
+list|	flatten|flatten(x)                | Concatenate elements of x. 
+list|	implode|implode(x,y)              | Join elements of y with x. 
+list|	in|in(x,y)                   | Is the item x in y? 
+list|	intersect|intersect(x,y)            | Collect items in x and y. 
+list|	join|join(x,y)          | Create a list from x and y. 
+list|	last|last(x,y)                 | Last x elements of y. 
+list|	order|order(x)                  | Equivalent to x. 
+list|	parse_int|parse_int(x, radix)      | Parse string with optional base. 
+list|	parse_float|parse_float(x)           | Parse string. 
+list|	part|part(x)            | Map unique items to indices. 
+list|	permutations|permutations(x,repeats)   | Optional repeat elements. 
+list|	powerset|powerset(x)               | All subsets of x. 
+list|	range|range(x)                  | Integer vector [0, x). 
+list|	range|range(x,y)                | Numeric vector [x, y), step 1. 
+list|	range|range(x,y,z)              | Numeric vector [x, y), step z. 
+list|	repeat|repeat(x,y)               | List of x copies of y. 
+list|	reverse|reverse(x) /         | Reverse the order of items in x. 
+list|	search|search(x,y)               | Find index of x in y or null. 
+list|	shift|shift(x,y,z)              | Shift y by x, fill with z. 
+list|	shuffle|shuffle(x)                | Randomly permute x. 
+list|	sort|sort(x)                   | Sort the items in x. 
+list|	split|split(x,y)                | Split x by indices in y. 
+list|	trim|trim(x)                   | Remove leading/trailing spaces. 
+list|	union|union(x)                  | Set union of x and y. 
+list|	which|which(x) ?           | Gather nonzero indices. 
+table|asof_join|	asof_join(x, y, k1, k2)  | Left join x and y on k1 as of k2. 
+table|has_column|	has_column(x, name)      | Does table have a given column? 
+table|has_key|	has_key(x, key)          | Check for valid index. 
+table|left_join|	left_join(x, y, keys)    | Left join x and y on k. 
+table|map|	map(keys, values)         | Build a map from two vectors. 
+table|table|	table(columns, values)    | Build a table. 
+table|xkeys|	xkeys(x)                  | Keys of map/table, indices of list. 
+table|xvals|	xvals(x)                  | Values of map/table/list. 
+table|tables|	tables()                  | List names of loaded tables. 
+aggregate|rsum|	rsum(list)           | Running sum. + unfold list.
+aggregate|count_non_null|	count_non_null(list) | How many items are not null? 
+aggregate|count_null|	count_null(list)    | How many items are null? 
+aggregate|xbar|	xbar(x,y)            | x * floor y/x. 
+aggregate|tokens||	avg max median min std sum var 
+aggregate|tokens||	 tableHeaderColor Sliding Windows (width, list) 
+aggregate|tokens||	mavg mcount mmax mmin msum 
+math|between|	between(x,y)                 | Is x between y[0] and y[1]? 
+math|dotp|	dotp(x,y)                    | Dot/Scalar product of x and y. 
+math|lsq|	lsq(A,B)  | Solve  for x. 
+math|minv|	minv(A)                      | Inverse of matrix A. 
+math|mmul|	mmul(A,B)                    | Multiply matrices A and B. 
+math|rand|	rand()                       | 1 random float [0, 1). 
+math|rand|	rand(x)                      | 1 random integer [0, x). 
+math|rand|	rand(x,y) ?             | x randoms of type y [0, y). 
+math|transpose|	transpose(x) .          | Matrix transpose of x. 
+math|token||	+ - / *  ** !    : = == < > <= >= != <> abs acos add
+math|token||	asin atan ceil cos cosh divide erf erfc exp floor lg ln log
+math|token||	mod negative pow sin sinh sqrt subtract tan tanh times and
+math|token||	equal greater greatereq less lesseq match not noteq or
+combinator| converge|	u converge x                            | Apply u to x until the value repeats or stops changing. 
+combinator| converge|	x u converge y                          | Apply u to x, y times. 
+combinator| deconverge|	u deconverge x |Apply u to x, y times, gather intermediate results.
+combinator| deconverge| x u deconverge x  | Apply u to x until the value repeats or stops changing,  gather intermediate results. 
+combinator|fold|	b fold x            |Apply b between elements of x. 
+combinator|fold| x b fold y              | Apply b between elements of x. 
+combinator|mapback|	b mapback x | Apply b between elements of x and their predecessor. 
+combinator|mapback|x b mapback y        | Apply b between elements of x and their predecessor. 
+combinator|mapdown|	u mapdown x| Apply u/b to each element of x (and each of y if present). 
+combinator| mapdown|x b mapdown y        | Apply u/b to each element of x (and each of y if present). 
+combinator|mapleft|	x b mapleft y                           | Apply b to y and each of x. 
+combinator|mapleft|	x b mapright y                          | Apply b to x and each of y. 
+combinator|unfold|	b unfold x          | As fold, but gather intermediate results. 
+combinator|unfold| x b unfold y          | As fold, but gather intermediate results. 
+sql|insert|insert|INSERT INTO table VALUES data
+sql|values|values|INSERT INTO table VALUES data
+sql|delete|delete|DELETE FROM table [ WHERE condition ]
+sql|select|select|SELECT field1, field2 [ AS name ] ... FROM table  [ WHERE condition ] [ GROUP BY aggregate ]
+sql|from|from|SELECT field1, field2 [ AS name ] ... FROM table  [ WHERE condition ] [ GROUP BY aggregate ]
+sql|group|group|SELECT field1, field2 [ AS name ] ... FROM table  [ WHERE condition ] [ GROUP BY aggregate ]
+sql|update|update|UPDATE table SET field1:val1, field2:val2 ...  [ WHERE condition ] [ GROUP BY aggregate ]
+misc|	atom|atom(x)             | Is x an atom? 
+misc|	eval|eval(x)             | Evaluate the string x. 
+misc|	shell|shell(x)            | Execute x as a shell command. 
+misc|	seed_prng|seed_prng(x)       | Seed the RNG used by rand. 
+misc|	sleep|sleep(x)            | Wait at least x milliseconds. 
+misc|dlload|	dlload(filename,funcname,argc) | Load a dynamic library. 
+perf|	timing|timing(x)           | Enable or disable time logging. 
+timestamp|stamp_diff|	stamp_diff(x,y)             | Stamp difference in ns. 
+timestamp|	now|now()               | Current date-time. 
+timestamp|	now_date|now_date()         | Current date. 
+timestamp|	now_time|now_time()         | Current time. 
+ipc|	open_socket|open_socket (host, port) | Host and port must be strings. 
+ipc|	close_socket|close_socket(handle)     | Close an IPC socket handle. 
+ipc|	send_async|send_async(handle, expr) | Doesn't block, Returns 1. 
+ipc|	send_sync|send_sync(handle, expr)  | Returns eval(y) on remote host. 
+types|||atlas char float hashed indexed int string 
+types|||json_from_kerf kerf_from_json type_null 
+types|	ifnull|ifnull(x)           | Is x null? 
+types|	kerf_type|kerf_type(x)       | Numeric typecode of x. 
+types|	kerf_type_name|kerf_type_name(x) | Human-readable type name. 
+types|	rep|rep(x)              | String representation of x. 
+io|load|	load(filename)               | Read and execute Kerf source. 
+io|exit|	exit(statusCode)             | Exit, status code is optional. 
+io|reset|	reset(dropArgs)              | Reset workspace. 
+io|out|	out(string)                  | Print a raw string x to stdout. 
+io|mkdir|        mkdir(x)          | Makes directory. 
+io|display|	display|display(x)                   | Prettyprint x to stdout. 
+io|	dir_ls|dir_ls(path, showFullPaths) | List the files in a directory path. 
+io|	lines|lines(filename, limit)       | Read lines of a text file. 
+io|	open_table|opentable(filename)        | mmap serialized Kerf table. 
+io|	read_from_path|read_from_path(filename)   | Load a serialized Kerf object. 
+io|	read_striped_from_path|read_striped_from_path(dirname) | Load a striped Kerf object. 
+io|	read_table_from_csv |read_table_from_csv (filename,fields,hrows) | Load a CSV file into a table. 
+io|	read_table_from_delimited_file|read_table_from_delimited_file (delim,filename,fields,hrows) | Load a delimited file into a table. 
+io|	read_table_from_fixed_file|read_table_from_fixed_file(filename,attr) | Load a fixed-width file. attr contains field types, widths, etc. 
+io|	read_table_from_tsv|read_table_from_tsv(filename,fields,hrows) | Load a TSV file into a table with optional header rows. 
+io|	write_csv_from_table|write_csv_from_table(filename,table) | Write a table to a CSV file. 
+io|	write_delimited_file_from_table|write_delimited_file_from_table(delim,filename,table) | Write a table to a delimited file. 
+io|	write_striped_to_path|write_striped_to_path(dirname,x) | Write a striped Kerf object. 
+io|	write_text|write_text(filename, x)     | Serialize x to a file as JSON. 
+io|	write_to_path|write_to_path(filename, x) | Serialize x to a file as binary. 
+io|	append_table_from_csv|append_table_from_csv(tablepath,csvpath,fields,hrows) | Append to disk-backed table. 
+io|	append_table_from_fixed_file|append_table_from_fixed_file (tablepath,fixedpath,attr) | Append to disk-backed table. 
+io|	append_table_from_psv|append_table_from_psv (tablepath,psvpath,fields,hrows) | Append to disk-backed table. 
+io|	append_table_from_tsv|append_table_from_tsv (tablepath,tsvpath,fields,hrows) | Append to disk-backed table. 
+io|	create_table_from_csv | create_table_from_csv (tablepath,csvpath,fields,hrows) | New disk-backed table 
+io|	create_table_from_fixed_file | create_table_from_fixed_file (tablepath,fixedpath,attr) | New disk-backed table. 
+io|	create_table_from_psv |create_table_from_psv(tablepath,psvpath,fields,hrows) | New disk-backed table. 
+io|create_table_from_tsv|	create_table_from_tsv (tablepath,tsvpath,fields,hrows) | New disk-backed table. 

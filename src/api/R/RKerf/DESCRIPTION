@@ -1,0 +1,12 @@
+Package: RKerf
+Type: Package
+Title: R talks to Kerf
+Version: 0.2.0
+Date: 2016-09-27
+Author: Scott Locklin
+Maintainer: Scott Locklin <...>
+Description: Talk to Kerf, get stuff back.
+Imports: jsonlite, pack
+License: BSD
+NeedsCompilation: no
+Packaged: 2016-09-27 20:18:03 UTC; scott
