@@ -1,4 +1,10 @@
-# kerf-source
+# kerf1-source
+
+
+  this is kerf1. kerf2 or kerf is here: https://github.com/kevinlawler/kerf
+
+
+# Contact
 
 
     kerf.concerns@gmail.com
@@ -20,6 +26,4 @@
 
 
     ./kerf_test
-
-
 
