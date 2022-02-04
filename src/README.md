@@ -4,19 +4,19 @@
     kerf.concerns@gmail.com
 
 
-#Compile on OS X, Linux
+# Compile on OS X, Linux
 
 
     make
 
 
-#Run
+# Run
 
 
     ./kerf
 
 
-#Run Tests
+# Run Tests
 
 
     ./kerf_test
