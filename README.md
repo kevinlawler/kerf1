@@ -1,5 +1,12 @@
 ![REPL](https://github.com/kevinlawler/kerf1/raw/master/repl-header.png)
 
+Source
+------
+
+kerf1: https://github.com/kevinlawler/kerf1/tree/master/src
+
+kerf2 (kerf): https://github.com/kevinlawler/kerf/
+
 What is Kerf?
 -------------
 
