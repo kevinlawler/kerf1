@@ -20,11 +20,11 @@ DerivedData
 startup.kerf
 
 #LaTeX
-manual/*.aux
-manual/*.gz
-manual/*.log
-manual/*.pdf
-manual/*.toc
+../manual/*.aux
+../manual/*.gz
+../manual/*.log
+../manual/*.pdf
+../manual/*.toc
 
 #kerf
 kerf

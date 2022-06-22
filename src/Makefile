@@ -169,16 +169,16 @@ load-parcel-data:
 %.t.o: %.c
 	$(CC) $(CFLAGS) -c $(CPPFLAGS) -o $@ $<
 
-docs: manual/refmanual.tex 
-	pdflatex --output-directory manual manual/refmanual.tex 
-	pdflatex --output-directory manual manual/refmanual.tex 
-	pdflatex --output-directory manual manual/refcard.tex 
-	pdflatex --output-directory manual manual/refcard.tex 
-	pdflatex --output-directory manual manual/kerfdb.tex 
-	pdflatex --output-directory manual manual/kerfdb.tex 
+docs: ../manual/refmanual.tex 
+	pdflatex --output-directory ../manual ../manual/refmanual.tex 
+	pdflatex --output-directory ../manual ../manual/refmanual.tex 
+	pdflatex --output-directory ../manual ../manual/refcard.tex 
+	pdflatex --output-directory ../manual ../manual/refcard.tex 
+	pdflatex --output-directory ../manual ../manual/kerfdb.tex 
+	pdflatex --output-directory ../manual ../manual/kerfdb.tex 
 
 cleandocs:
-	find manual/ -type f -not -name '*.tex' -print0 | xargs -0 -I {} rm {}
+	find ../manual/ -type f -not -name '*.tex' -print0 | xargs -0 -I {} rm {}
 
 .PHONY: all clean install 
 
