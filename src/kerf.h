@@ -194,6 +194,7 @@ static char *kerf =
 
 #ifdef __linux
 #include <sys/eventfd.h>
+#include <sys/sysmacros.h>
 #endif
 
 #if defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__NetBSD__)
