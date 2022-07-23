@@ -1,0 +1,112 @@
+name: Build kerf1
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - '*'
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Build kerf
+        run: |
+          cd $GITHUB_WORKSPACE/src/
+          make all
+          mv kerf kerf-macos
+
+      - name: Test kerf
+        timeout-minutes: 1 # It is an interactive test, otherwise, a tool like expect should be used
+        continue-on-error: true
+        run: $GITHUB_WORKSPACE/src/kerf_test
+
+      - name: Upload build
+        uses: actions/upload-artifact@v3 # All users can find the artifacts inside of the actions
+        with:
+          name: kerf-macOS
+          path: ${{ github.workspace }}/src/kerf-macos
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download libedit (3.1 thrysoee.dk macports) w/ checksum
+        run: |
+          wget https://thrysoee.dk/editline/libedit-20210910-3.1.tar.gz
+          echo "b7361c277f971ebe87e0e539e5e1fb01a4ca1bbab61e199eb97774d8b60dddeb9e35796faf9cc68eb86d1890e8aac11db13b44b57ccc8302d559741fbe9d979e  libedit-20210910-3.1.tar.gz" | sha512sum -c
+
+      - name: Install libedit
+        run: |
+          tar -xf libedit-20210910-3.1.tar.gz
+          cd libedit-20210910-3.1
+          ./configure
+          make
+          sudo make install
+
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Build kerf
+        run: |
+          cd $GITHUB_WORKSPACE/src/
+          make all
+          mv kerf kerf-linux
+
+      - name: Test kerf
+        timeout-minutes: 1 # It is an interactive test, otherwise, a tool like expect should be used
+        continue-on-error: true
+        run: $GITHUB_WORKSPACE/src/kerf_test
+
+      - name: Upload build
+        uses: actions/upload-artifact@v3 # All users can find the artifacts inside of the actions
+        with:
+          name: kerf-linux
+          path: ${{ github.workspace }}/src/kerf-linux
+
+  release:
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [build-macos, build-linux]
+    steps:
+      - name: Download macOS artifact
+        uses: actions/download-artifact@v3
+        continue-on-error: true
+        with:
+          name: kerf-macOS
+          path: output
+
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v3
+        continue-on-error: true
+        with:
+          name: kerf-linux
+          path: output
+
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v3
+        continue-on-error: true
+        with:
+          name: kerf-windows
+          path: output
+
+      - name: Make binaries executable
+        continue-on-error: true
+        run: |
+          chmod +x output/kerf-macos;
+          chmod +x output/kerf-linux;
+          chmod +x output/kerf-windows.exe
+
+      - name: Draft Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/') # Only DRAFT releases on tags, owner still has to write body and publish it
+        with:
+          draft: true
+          tag_name: ${{ steps.vars.outputs.tag_name }}
+          files: |
+            output/kerf-macos
+            output/kerf-linux
+            output/kerf-windows.exe
