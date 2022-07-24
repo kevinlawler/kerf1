@@ -39,6 +39,11 @@ jobs:
                 "KeRF> " {send "quit\r"}
                 timeout { exit 1 }
               }
+              expect {
+                "[DEBUG] OK: Done OK." {}
+                "[DEBUG] FAILED: Debug failure." { exit 1 }
+                timeout { exit 1 }
+              }
               interact
           EOD
 
@@ -79,6 +84,11 @@ jobs:
               }
               expect {
                 "KeRF> " {send "quit\r"}
+                timeout { exit 1 }
+              }
+              expect {
+                "[DEBUG] OK: Done OK." {}
+                "[DEBUG] FAILED: Debug failure." { exit 1 }
                 timeout { exit 1 }
               }
               interact
