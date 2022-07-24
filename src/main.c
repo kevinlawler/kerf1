@@ -443,7 +443,7 @@ void cleanup()
   }
   else
   {
-    fprintf(stderr,"[DEBUG]\x1B[1;37;41mFAILED: Debug failure.\x1B[0m\n");
+    fprintf(stderr,"[DEBUG] \x1B[1;37;41mFAILED: Debug failure.\x1B[0m\n");
   }
 
 #endif
