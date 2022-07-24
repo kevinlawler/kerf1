@@ -21,10 +21,31 @@ jobs:
           make all
           mv kerf kerf-macos
 
+      - name: Install expect to test kerf
+        run: brew install expect
+
       - name: Test kerf
-        timeout-minutes: 1 # It is an interactive test, otherwise, a tool like expect should be used
-        continue-on-error: true
-        run: $GITHUB_WORKSPACE/src/kerf_test
+        run: |
+          cd $GITHUB_WORKSPACE/src/
+          expect <<EOD
+              set timeout 60
+              spawn ./kerf_test
+              expect {
+                "Passed" {}
+                "Failed" { exit 1 }
+                timeout { exit 1 }
+              }
+              expect {
+                "KeRF> " {send "quit\r"}
+                timeout { exit 1 }
+              }
+              expect {
+                "\[DEBUG\] OK: Done OK." {}
+                "\[DEBUG\] FAILED: Debug failure." { exit 1 }
+                timeout { exit 1 }
+              }
+              exit 0
+          EOD
 
       - name: Upload build
         uses: actions/upload-artifact@v3 # All users can find the artifacts inside of the actions
@@ -47,10 +68,31 @@ jobs:
           make all
           mv kerf kerf-linux
 
+      - name: Install expect to test kerf
+        run: sudo apt-get install -y expect
+
       - name: Test kerf
-        timeout-minutes: 1 # It is an interactive test, otherwise, a tool like expect should be used
-        continue-on-error: true
-        run: $GITHUB_WORKSPACE/src/kerf_test
+        run: |
+          cd $GITHUB_WORKSPACE/src/
+          expect <<EOD
+              set timeout 60
+              spawn ./kerf_test
+              expect {
+                "Passed" {}
+                "Failed" { exit 1 }
+                timeout { exit 1 }
+              }
+              expect {
+                "KeRF> " {send "quit\r"}
+                timeout { exit 1 }
+              }
+              expect {
+                "\[DEBUG\] OK: Done OK." {}
+                "\[DEBUG\] FAILED: Debug failure." { exit 1 }
+                timeout { exit 1 }
+              }
+              exit 0
+          EOD
 
       - name: Upload build
         uses: actions/upload-artifact@v3 # All users can find the artifacts inside of the actions
