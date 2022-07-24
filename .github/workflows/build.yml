@@ -40,8 +40,8 @@ jobs:
                 timeout { exit 1 }
               }
               expect {
-                "[DEBUG] OK: Done OK." {}
-                "[DEBUG] FAILED: Debug failure." { exit 1 }
+                "\[DEBUG\] OK: Done OK." {}
+                "\[DEBUG\] FAILED: Debug failure." { exit 1 }
                 timeout { exit 1 }
               }
               interact
@@ -87,8 +87,8 @@ jobs:
                 timeout { exit 1 }
               }
               expect {
-                "[DEBUG] OK: Done OK." {}
-                "[DEBUG] FAILED: Debug failure." { exit 1 }
+                "\[DEBUG\] OK: Done OK." {}
+                "\[DEBUG\] FAILED: Debug failure." { exit 1 }
                 timeout { exit 1 }
               }
               interact
