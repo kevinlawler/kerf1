@@ -44,7 +44,7 @@ jobs:
                 "\[DEBUG\] FAILED: Debug failure." { exit 1 }
                 timeout { exit 1 }
               }
-              interact
+              exit 0
           EOD
 
       - name: Upload build
@@ -91,7 +91,7 @@ jobs:
                 "\[DEBUG\] FAILED: Debug failure." { exit 1 }
                 timeout { exit 1 }
               }
-              interact
+              exit 0
           EOD
 
       - name: Upload build
