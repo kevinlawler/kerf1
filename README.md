@@ -16,7 +16,7 @@ Kerf is a columnar tick database and time-series language for Linux/OSX/BSD/iOS/
 
 The manual, currently in progress, is here: 
 
-https://github.com/kevinlawler/kerf/tree/master/manual
+https://github.com/kevinlawler/kerf1/tree/master/manual
 
 The manual covers much more than the whirlwind guide below.
 
