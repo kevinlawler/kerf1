@@ -40,6 +40,7 @@ ifeq (linux,$(OS))
 # LDFLAGS +=  -ldl -lm -lpthread -lrt -ltermcap -lz ./libedit.a
 LDFLAGS +=  -ldl -lm -lpthread -lrt -ltermcap -lz -ledit
 CFLAGS  += -rdynamic -m64 # -w
+CFLAGS += -fcommon
 ifneq (,$(findstring DDEBUG, $(CFLAGS)))
   $(info Adding -g debug flag)
   CFLAGS  += -fPIC # -fPIE -pie 
