@@ -62,7 +62,7 @@ jobs:
                 timeout { exit 1 }
               }
               expect {
-                "KeRF> " {send "printenv\r"}
+                "KeRF> " {send "quit\r"}
                 timeout { exit 1 }
               }
               interact
