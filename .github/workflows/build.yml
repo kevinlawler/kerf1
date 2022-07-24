@@ -35,18 +35,8 @@ jobs:
   build-linux:
     runs-on: ubuntu-latest
     steps:
-      - name: Download libedit (3.1 thrysoee.dk macports) w/ checksum
-        run: |
-          wget https://thrysoee.dk/editline/libedit-20210910-3.1.tar.gz
-          echo "b7361c277f971ebe87e0e539e5e1fb01a4ca1bbab61e199eb97774d8b60dddeb9e35796faf9cc68eb86d1890e8aac11db13b44b57ccc8302d559741fbe9d979e  libedit-20210910-3.1.tar.gz" | sha512sum -c
-
       - name: Install libedit
-        run: |
-          tar -xf libedit-20210910-3.1.tar.gz
-          cd libedit-20210910-3.1
-          ./configure
-          make
-          sudo make install
+        run: sudo apt-get install -y libedit-dev
 
       - name: Checkout repo
         uses: actions/checkout@v3
