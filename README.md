@@ -596,11 +596,11 @@ To extract individual parts from times, use
     heartrates: 80 + rand(n, 100.0)  
     labels: range(6)
     lanes: take(n, join(labels, reverse labels))
-    running: {{id: ids, stamp: stamps, heartrate: heartrates, lane: lanes}} 
+    running: {{id: ids, timestamp: stamps, heartrate: heartrates, lane: lanes}} 
 
 
     ┌──┬───────────────────────┬─────────┬────┐
-    │id│stamp                  │heartrate│lane│
+    │id│timestamp              │heartrate│lane│
     ├──┼───────────────────────┼─────────┼────┤
     │ 1│2015.07.06T16:24:55.543│  96.4771│   0│
     │ 2│2015.07.06T16:24:56.543│  107.397│   1│
@@ -641,7 +641,7 @@ And there's no reason we can't run SQL inside of JSON:
 
     first(3, running)
     ┌──┬───────────────────────┬─────────┬────┐
-    │id│stamp                  │heartrate│lane│
+    │id│timestamp              │heartrate│lane│
     ├──┼───────────────────────┼─────────┼────┤
     │ 1│2015.07.06T16:24:55.543│  96.4771│   0│
     │ 2│2015.07.06T16:24:56.543│  107.397│   1│
@@ -651,9 +651,9 @@ And there's no reason we can't run SQL inside of JSON:
   Get the bounds on the time:
 
 
-    select first(stamp), last(stamp) from running
+    select first(timestamp), last(timestamp) from running
     ┌───────────────────────┬───────────────────────┐
-    │stamp                  │stamp1                 │
+    │timestamp              │timestamp1             │
     ├───────────────────────┼───────────────────────┤
     │2015.07.06T16:24:55.543│2015.07.06T19:11:34.543│
     └───────────────────────┴───────────────────────┘
@@ -661,7 +661,7 @@ And there's no reason we can't run SQL inside of JSON:
   Alternatively
 
 
-    [first(running.stamp), last(running.stamp)]
+    [first(running.timestamp), last(running.timestamp)]
     [2015.04.01T19:13:33.917, 2015.04.01T22:00:12.917]
 
 
@@ -717,7 +717,7 @@ Conjunction in a WHERE clause is indicated using commas, e.g.:
     select from running where lane = 2, heartrate = 108.356
     
     ┌──┬───────────────────────┬─────────┬────┐
-    │id│stamp                  │heartrate│lane│
+    │id│timestamp              │heartrate│lane│
     ├──┼───────────────────────┼─────────┼────|
     │ 3│2015.07.06T16:24:57.543│  108.356│   2│
     └──┴───────────────────────┴─────────┴────┘
