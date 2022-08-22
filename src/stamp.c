@@ -543,7 +543,7 @@ I stampI_from_TM_NANOS(TM_NANOS x, bool local)
   
   if(use_local)
   {
-    unixtime = timelocal(&t);
+    unixtime = mktime(&t);
   }
   else
   {
@@ -895,7 +895,7 @@ K parse_absolute_date(K x, bool local)
   
   if(local)
   {
-    unixtime = timelocal(&t);
+    unixtime = mktime(&t);
   }
   else
   {
@@ -924,7 +924,7 @@ K parse_absolute_time(K x, bool local)
   
   if(local)
   {
-    unixtime = timelocal(&t);
+    unixtime = mktime(&t);
   }
   else
   {
