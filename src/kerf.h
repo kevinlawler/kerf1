@@ -186,6 +186,7 @@ static char *kerf =
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <sys/file.h>
 #include <sysexits.h>
 #include <termios.h>
 #include <time.h>
