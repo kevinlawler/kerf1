@@ -20,7 +20,7 @@ ifneq (,$(findstring DDEBUG, $(CFLAGS)))
 endif
 
 ifdef STATIC
-  CFLAGS += -static
+  CFLAGS += -static --rtlib=compiler-rt
   LDFLAGS += -lfts
 endif
 
