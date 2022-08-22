@@ -19,6 +19,11 @@ ifneq (,$(findstring DDEBUG, $(CFLAGS)))
   CFLAGS += -g
 endif
 
+ifdef STATIC
+  CFLAGS += -static
+  LDFLAGS += -lfts
+endif
+
 $(shell mkdir -p "$(OBJDIR)")
 
 GLOBAL_HEADERS = kerf.h dry.h help.h
