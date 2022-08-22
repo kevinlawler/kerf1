@@ -20,8 +20,8 @@ ifneq (,$(findstring DDEBUG, $(CFLAGS)))
 endif
 
 ifdef STATIC
-  CFLAGS += -static --rtlib=compiler-rt
-  LDFLAGS += -lfts
+  CFLAGS += -static --rtlib=compiler-rt -fuse-ld=lld
+  LDFLAGS += -lfts -L/usr/local/lib
 endif
 
 $(shell mkdir -p "$(OBJDIR)")
