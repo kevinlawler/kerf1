@@ -65,7 +65,7 @@ jobs:
       - name: Build kerf
         run: |
           cd $GITHUB_WORKSPACE/src/
-          docker build -o . .
+          DOCKER_BUILDKIT=1 docker build -o . .
           tar xvf kerf1.tar
           mv kerf kerf-linux
 
