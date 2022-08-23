@@ -119,19 +119,11 @@ jobs:
           name: kerf-linux
           path: output
 
-      - name: Download Windows artifact
-        uses: actions/download-artifact@v3
-        continue-on-error: true
-        with:
-          name: kerf-windows
-          path: output
-
       - name: Make binaries executable
         continue-on-error: true
         run: |
           chmod +x output/kerf-macos;
           chmod +x output/kerf-linux;
-          chmod +x output/kerf-windows.exe
 
       - name: Draft Release
         continue-on-error: true
