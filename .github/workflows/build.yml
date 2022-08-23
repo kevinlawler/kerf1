@@ -142,4 +142,3 @@ jobs:
           files: |
             output/kerf-macos
             output/kerf-linux
-            output/kerf-windows.exe
