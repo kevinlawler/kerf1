@@ -2590,7 +2590,7 @@ The function \primu{send\_async}{sendAsync}\texttt{(handle, x)} will send a stri
 
 \vspace{0.5cm}
 
-The function \primu{send\_sync}{sendSync}\texttt{(handle, x)} will send a string \texttt{y} to a remote Kerf instance, waiting for a reply. \\\texttt{y} will be \prim{eval}ed on the remote server, and the result will be returned.
+The function \primu{send\_sync}{sendSync}\texttt{(handle, y)} will send a string \texttt{y} to a remote Kerf instance, waiting for a reply. \\\texttt{y} will be \prim{eval}ed on the remote server, and the result will be returned.
 
 \begin{Verbatim}
 KeRF> \typed{c: open_socket("localhost", "1234")}
