@@ -1,0 +1,2 @@
+load("scripts/test/stripes/stripe-helper.kerf");
+b:tableGeneral(1000000);

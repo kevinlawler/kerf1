@@ -1,0 +1,7 @@
+// start kerf process with -p 1234
+ticks:{{TICKER:'SPY',SIZE:0,PRICE:20,BID_ASK_TRADE:'A',DATETIME:NOW(),ARRIVED:NOW()}}
+
+def .Feeds.FakeData.handler(m) {
+    insert into ticks values join(m,NOW());
+}
+

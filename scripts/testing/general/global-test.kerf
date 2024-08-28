@@ -1,0 +1,26 @@
+// checks
+// could intern all this as a map if we had try/catch, but following this pattern is 
+// probably fine for now
+def checker(x){
+ display flatten("Help Parse Test ",["bad","correct"][ x])
+}
+
+tvec: range(10)
+tarr: [1 2 3, 4 5 6] 
+checker(kerf_type(.Help)=10)
+checker(len(help("car"))>0)
+checker(len (tvec) converge 10)
+checker(len((tvec) converge tvec)=10)
+checker((len (tvec)+ converge 10)=10)
+checker((len (tvec)+ converge tvec)=10)
+checker(len(rsum(tvec,3))=20)
+checker(len(rsum(3,tvec))=11)
+checker(len(bucketed(2,tvec))=10)
+checker(len(bucketed(tvec,2))=10)
+checker(len(bucketed(tvec,tvec))=10)
+
+//TODO 
+//cross deal count combinations drop except explode filter first implode in intersect join last permutations repeat search shift split xbar count_nonnull 
+//mmin mavg mmin rsum median min std sum var mcount
+
+// combinator combinations

@@ -1,0 +1,122 @@
+load("scripts/test/stripes/stripe-helper.kerf");
+DATADIR: "scripts/test/stripes/datadir/";
+mkdir(DATADIR);
+//.SILENT: "silent"= .Argv[2];
+.SILENT: 0
+
+display2 "make a table"
+
+
+tbl: sort tableGeneral(10000); // lowered from 100000 for speed
+tbl.strlowent: #tbl.strlowent;
+tbl.strhighent: #tbl.strhighent;
+display2 "table made"
+
+tbls: write_striped_to_path(namer("00test1"),sort tbl[[0]]);
+
+display2 "table made"
+tic:NOW();
+{[x] insert into tbls values tbl[[x]]} mapright cdr range(len(tbl));
+toc:NOW();
+instime: stamp_diff(toc, tic)/.Math.BILLION;
+insrate: len(tbl)/instime;
+display implode(" ",["row by row inserted",string(len(tbl)),"rows in",string(instime),"seconds; rate of",string(floor(insrate)),"rows per sec"])
+
+
+display2 "insert rows with repeats"
+tblreps: repRows(tbl,0.2); // 20% repeats
+tblsr:  write_striped_to_path(namer("00test2"),sort tblreps[[0]]);
+tic:NOW();
+{[x] insert into tblsr values tblreps[[x]];} mapright cdr range(len(tblreps));
+toc:NOW();
+instime2: stamp_diff(toc, tic)/.Math.BILLION;
+insrate2: len(tblreps)/instime2;
+display implode(" ",["row by row inserted",string(len(tblreps)),"rows in",string(instime2),"seconds; rate of",string(floor(insrate2)),"rows per sec"])
+
+
+display2 "insert chunks with repeats"
+tblreps: repRows(tbl,0.2); // 20% repeats
+chunksize: 1000;
+idx: range(chunksize);
+tblsr:  write_striped_to_path(namer("00test2"),sort tblreps[idx]);
+tic:NOW();
+{[x] insert into tblsr values tblreps[x+idx];} mapright cdr range(floor(len(tblreps)/chunksize));
+toc:NOW();
+chktime: stamp_diff(toc, tic)/.Math.BILLION;
+chkrate: len(tblreps)/chktime;
+display implode(" ",[string(chunksize),"chunksize inserted",string(len(tblreps)),"rows in",string(chktime),"seconds; rate of",string(floor(chkrate)),"rows per sec"])
+
+// what should the ind column be in a 
+tblreps: sort repRows(tbl,0.2);
+cannon: tblreps['idx'];
+ind: which(cannon>=len(tbl)); // where the repeats are
+cannon[(-1+ind)]: cannon[ind]; // set the prev to repeats
+canRes: cannon[setminus(range(len(cannon)),ind)];
+// all the ind columns should look like this guy
+
+display2 "upsert rows with repeats"
+tblreps: sort repRows(tbl,0.2); // 20% repeats tagged to the end, in time order
+onerow: tblreps[[0]];
+onerow['timedate']: indexed onerow['timedate'];
+tblsr: write_striped_to_path(namer("00test4"),onerow);
+tic:NOW();
+{[x] insert into tblsr (timedate, strlowent, someprices, somebasis, intslowent, intshighent, strhighent, floatlowent, floathighent, idx) values tblreps[[x]] on conflict ("timedate","intslowent","strlowent") update;} mapright cdr range(len(tblreps));
+toc:NOW();
+upstime: stamp_diff(toc, tic)/.Math.BILLION;
+upsrate: len(tblreps)/upstime;
+display implode(" ",["row by row inserted",string(len(tblreps)),"rows in",string(upstime),"seconds; rate of",string(floor(upsrate)),"rows per sec"])
+tmp:len(canRes) = len(tblsr['idx']);
+gdbd("upsert length check", tmp);
+if(tmp) {
+gdbd("upsert correctness check", len(tbl)=sum(canRes=tblsr['idx']));
+}
+
+display2 "pathological upsert rows with repeats"
+tblreps:  repRows(tbl,0.2); // 20% repeats tagged to the end
+tblsr:  write_striped_to_path(namer("00test5"),sort tblreps[[0]]);
+tic:NOW();
+{[x] insert into tblsr (timedate, strlowent, someprices, somebasis, intslowent, intshighent, strhighent, floatlowent, floathighent, idx) values tblreps[[x]] on conflict ("timedate","intslowent","strlowent") update;} mapright cdr range(len(tblreps));
+toc:NOW();
+upstime1: stamp_diff(toc, tic)/.Math.BILLION;
+upsrate1: len(tblreps)/upstime1;
+display implode(" ",["row by row upserted",string(len(tblreps)),"rows in",string(upstime1),"seconds; rate of",string(floor(upsrate1)),"rows per sec"])
+tmp:len(canRes) = len(tblsr['idx']);
+gdbd("upsert length check", tmp);
+if(tmp) {
+gdbd("upsert correctness check", len(tbl)=sum(canRes=tblsr['idx']));
+}
+
+
+
+display2 "chunked upsert rows with repeats"
+tblreps:  sort repRows(tbl,0.2); // 20% repeats tagged to the end, in order
+chunksize: 1000; 
+idx:range(chunksize);
+tblsr:  write_striped_to_path(namer("00test6"),sort tblreps[[0]]);
+tic:NOW();
+{[x] insert into tblsr (timedate, strlowent, someprices, somebasis, intslowent, intshighent, strhighent, floatlowent, floathighent, idx) values tblreps[x+idx] on conflict (timedate, intslowent,strlowent) update;} mapright cdr range(floor(len(tblreps)/chunksize));
+toc:NOW();
+upstime2: stamp_diff(toc, tic)/.Math.BILLION;
+upsrate2: len(tblreps)/upstime2;
+display implode(" ",[string(chunksize),"chunksize upserted",string(len(tblreps)),"rows in",string(upstime2),"seconds; rate of",string(floor(upsrate2)),"rows per sec"])
+tmp:len(canRes) = len(tblsr['idx']);
+gdbd("upsert length check", tmp);
+if(tmp) {
+gdbd("upsert correctness check", len(tbl)=sum(canRes=tblsr['idx']));
+}
+
+display2 "insert multiple dupes"
+arow: tbl[0];
+arow['idx']: 0;
+threerows: arow[[0,0,0]];
+threerows['idx']: [1,2,3];
+insert into arow (timedate, strlowent, someprices, somebasis, intslowent, intshighent, strhighent, floatlowent, floathighent, idx) values threerows on conflict (timedate,intslowent,strlowent) update;
+tmp: len(arow)=1
+gdbd("insert multiple dupes length check",tmp);
+if(tmp) {
+ gdbd(["insert multiple dupes correctness check"],3=arow['idx']);
+}
+
+exit 0
+
+

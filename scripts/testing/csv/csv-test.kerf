@@ -1,0 +1,114 @@
+// TODO -seems relatively complete; eventually tear out unit test piece
+// from stripe-helper
+load("scripts/test/stripes/stripe-helper.kerf");
+DATADIR:"./scripts/test/csv/data/"
+.SILENT: "silent"= .Argv[2];
+.Parse.strptime_format: "%Y.%m.%dT%H:%M:%S.000"
+cannon: read_table_from_csv(namer("simple10.csv"),"FFFFIEEZ",1)
+tmp: read_table_from_csv(namer("simple10q.csv"),"FFFFIEEZ",1)
+gdbd("testing quotes",cannon=tmp) // should be same 
+tmp1: read_table_from_csv(namer("simple-skip.csv"),"FFFFIEEZ",1)
+gdbd("testing line skips",cannon=tmp1) // should be same length; ignores skips
+tmp1: read_table_from_csv(namer("simple-skip.csv"),"*FFFIEEZ",1)
+gdbd("testing column skip",(select enumstring from tmp1) = select enumstring from cannon)
+tmp2: read_table_from_csv(namer("simple-nohead.csv"),"FFFFIEEZ",0)
+gdbd(["testing header skip"],(xvals select col6 from tmp2) = xvals select enumstring from cannon)
+tmp3: read_table_from_csv(namer("simple-nohead.csv"),"*FFFIEEZ",0)
+gdbd(["testing column skip"],(xvals select col6 from tmp2) = xvals select col5 from tmp3)
+tmp3: read_table_from_csv(namer("simple-nohead.csv"),"FFFF*EEZ",0)
+gdbd(["testing head/column skip"],(xvals select col6 from tmp2) = xvals select col5 from tmp3)
+tmp3: read_table_from_csv(namer("simple-nohead.csv"),"FFFFIEE*",0)
+gdbd(["testing head/column skip"],(xvals select col6 from tmp3) = xvals select enumstring from cannon)
+
+
+esc: read_table_from_csv(namer("simple-qesc2.csv"),"FFFFIEEZ",1)
+gdbd("testing single quote escape","H,HJKAH" = flatten flatten xvals select astring from esc where volume=19817)
+gdbd("testing double slash escape","BKB\\HBB" = flatten flatten xvals select astring from esc where volume=15252)
+gdbd("testing double quote escape","\"BBHJAJ" = flatten flatten xvals select astring from esc where volume=10668)
+gdbd("testing mangled colname,leading comma",",JJKLUJ" = flatten flatten xvals select en_umstring from esc where volume=19817)
+gdbd("testing trailing column for correctness",(select datetime from esc) = select datetime from cannon)
+gdbd("testing null string column",""=flatten flatten xvals select en_umstring from esc where volume=13092)
+
+gdbd("testing null float column",(0.0=flatten flatten xvals select low from esc where volume=14726)[0])
+gdbd("testing leading 0 float column",(0.1307 = flatten flatten xvals select close from esc where volume=15719)[0])
+gdbd("testing dropped 0 float column",(0.5083 = flatten flatten xvals select close from esc where volume=15252)[0])
+
+cesc: read_table_from_csv(namer("simple-qesc.csv"),"FFFFIEEZ",1)
+display namer("simple-qesc.psv")
+pesc: read_table_from_delimited_file("|",namer("simple-qesc.psv"),"FFFFIEEZ",1)
+gdbd("testing pipes vs csv names",8 = sum (xkeys cesc) = xkeys pesc)
+pescs: read_table_from_delimited_file("|",namer("simple-qesc.psv"),"FFFFI*EZ",1)
+gdbd("testing timecol pipes reg",(select datetime from cesc) = select datetime from pesc)
+gdbd("pipe spot check", "\"BBHJAJ" = flatten flatten xvals select astring from esc where volume=10668)
+sesc: read_table_from_delimited_file(";",namer("simple-qesc.ssv"),"FFFFIEEZ",1)
+gdbd("semicolon spot check", ";JJKLUJ" = flatten flatten xvals select en_umstring from sesc where volume=19817)
+sescs: read_table_from_delimited_file(";",namer("simple-qesc.ssv"),"FFFFIE*Z",1)
+gdbd("drop mangled column check",(select datetime from sescs) = select datetime from cannon)
+tesc: read_table_from_delimited_file("\t",namer("simple-tabs.tsv"),"FFFFIEEZ",1)
+gdbd("tab col check",(select close from tesc ) = select close from cannon)
+gdbd("tab spot check",(select close from tesc ) = select close from cannon)
+
+tescd: read_table_from_delimited_file("\t",namer("simple-dos.tsv"),"FFFFIEEZ",1)
+gdbd("dos load check",8 = sum (xvals tescd) = xvals tesc) // changes col name, this is OK
+tescd2: read_table_from_delimited_file("\t",namer("simple-dos.tsv"),"FFFFIEEZ",1)
+gdbd("dos load check 2",8 = sum (xvals tescd) = xvals tescd2) 
+
+
+// parsing of fractional stamps
+
+millis: ["2016.08.31T23:09:21.078", "2016.08.31T23:09:21.008", "2016.08.31T23:09:21.608", "2016.08.31T23:09:21", "2016.08.31T23:09:21.678"];
+
+micros: ["2016.08.31T23:09:21.000078", "2016.08.31T23:09:21.008002", "2016.08.31T23:09:21.000608", "2016.08.31T23:09:21.006780", "2016.08.31T23:09:21"];
+
+nanos: ["2016.08.31T23:09:21.000000078", "2016.08.31T23:09:21.000080010", "2016.08.31T23:09:21.000006080", "2016.08.31T23:09:21.000678000", "2016.08.31T23:09:21"];
+
+
+brokenmillis: ["2016.08.31T23:09:21.ABC", "2016.08.31T23:09:21.08", "2016.08.31T23:09:21.C60", "2016.08.31T23:09:21.5678", "2016.08.31T23:09:21.67"];
+
+brokennanos: ["2016.08.31T23:09:21.00000078", "2016.08.31T23:09:21.00080010", "2016.08.31T23:09:21.00000006080", "2016.08.31T23:09:21.0006000078000", "2016.08.31T23:09:21.67800"];
+
+semibrokennanos: ["2016.08.31T23:09:21.000000078", "2016.08.31T23:09:21.000080010", "2016.08.31T23:09:21.00000608", "2016.08.31T23:09:21.000678000", "2016.08.31T23:09:21.1"];
+
+tbl: {{intcol:range(5),millis:millis,micros:micros,nanos:nanos,brokenmillis:brokenmillis,brokennanos:brokennanos,seminanos:semibrokennanos}};
+
+write_csv_from_table(namer("test.csv"),tbl);
+
+.Parse.strptime_format: '%Y.%m.%dT%H:%M:%S.%q';
+parsed: read_table_from_csv(namer("test.csv"),"IZZZZZZ",1);
+gdbd(["successful millis parse"],0 = stamp_diff(parsed.millis, eval millis))
+gdbd(["microsecond parse fallback"],repeat(5,2016.08.31T23:09:21.000)  = parsed.micros)
+gdbd(["nanos fallback"],repeat(5,2016.08.31T23:09:21.000)  = parsed.nanos)
+gdbd(["broken millis fallback"],repeat(5,2016.08.31T23:09:21.000)  = parsed.brokenmillis)
+
+
+.Parse.strptime_format: '%Y.%m.%dT%H:%M:%S.%Q';
+parsed: read_table_from_csv(namer("test.csv"),"IZZZZZZ",1);
+gdbd(["successful micros parse"],0 = stamp_diff(parsed.micros, eval micros))
+gdbd(["millis fallback"],repeat(5,2016.08.31T23:09:21.000)  = parsed.millis)
+gdbd(["nanos fallback"],repeat(5,2016.08.31T23:09:21.000)  = parsed.nanos)
+
+.Parse.strptime_format: '%Y.%m.%dT%H:%M:%S.%N';
+parsed: read_table_from_csv(namer("test.csv"),"IZZZZZZ",1);
+gdbd(["successfull nanos parse"],0 = stamp_diff(parsed.nanos ,eval nanos))
+gdbd(["millis fallback"],repeat(5,2016.08.31T23:09:21.000)  = parsed.millis)
+gdbd(["micros fallback"],repeat(5,2016.08.31T23:09:21.000)  = parsed.micros)
+
+gdbd(["broken nanos fallback"],repeat(5,eval micros[4]) = parsed.brokennanos)
+gdbd(["broken millis fallback"],repeat(5,eval micros[4]) = parsed.brokenmillis)
+gdbd(["semibroke nanos grace"],0 =  stamp_diff(parsed.nanos,parsed.seminanos)[[0,1,3]])
+gdbd("got a good nano",0=0=  stamp_diff(parsed.nanos,parsed.seminanos)[2])
+
+
+display2 "writing global error check"
+if(!.SILENT) {
+ write_to_path("00csvErrDUMP",.Err);
+}
+
+display2 "printing csv global error check"
+display2 .Err
+
+display implode("",[string(sum(  .Err['0'])), " correct out of ", string(len(.Err['0']))," tests on csv reader"])
+exit(0)
+
+
+

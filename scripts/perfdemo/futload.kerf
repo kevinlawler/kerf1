@@ -1,0 +1,18 @@
+filepath: "/data/futures/kerf/"
+.Parse.strptime_format: '%m/%d/%Y %H:%M' 
+
+fields: {
+Date Time:'Z',
+Open:'F',
+High:'F',
+Low:'F',
+Close: 'F',
+Volume: 'F',
+Tick_Count: 'F'
+}
+
+kc:read_table_from_csv("/data/futures/kerf/raws/KC.csv","ZFFFFFF",1)
+sb:read_table_from_csv("/data/futures/kerf/raws/SB.csv","ZFFFFFF",1)
+write_to_path("/data/futures/kerf/db/kc",kc)
+write_to_path("/data/futures/kerf/db/sb",sb)
+

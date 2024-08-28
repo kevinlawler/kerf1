@@ -1,0 +1,34 @@
+filename: './incoming/ZEP_20151020.csv'
+//filename: './incoming/ZEP-sample.csv'
+
+.Parse.strptime_format:'%Y-%m-%d'
+
+names:{
+  sym:   'E',
+  date:  'Z',
+  open:  'F',
+  high:  'F',
+  low:   'F',
+  close: 'F',
+  volume:'F',
+}
+
+cols: xkeys(names)[which xvals(names) != '*']
+fields: flatten xvals(names)
+
+t: read_table_from_csv(filename, fields, 0);
+
+//t does not have column names yet
+
+s:{{}}
+s[cols]: xvals t
+
+delete from s where volume <= 0 
+
+t: sort s
+
+s:null
+
+write_to_path('./tables/zepsort.table', t)
+
+t: null

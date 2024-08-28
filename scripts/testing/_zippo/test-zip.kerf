@@ -1,0 +1,71 @@
+randfix: {[x,y] seed_prng(0); rand(x,y)}
+timeseq: {[n,y] y + (24 * 3600000000) * range(n)}
+randstr: {[n,st] seed_prng(n); {[x] rand(x,st)} mapright repeat(n,len(st)) }
+randstr2: {[n,st] {[x] rand(x,st)} mapright repeat(n,len(st)) }
+
+
+ints: randfix(100,10)
+ints2: randfix(100,11)
+floats: randfix(100,10.1)
+strs: randstr(100,"ABC")
+
+intsc: compressed ints
+ints2c: compressed ints2
+floatsc: compressed floats
+
+which(!(ints = intsc))
+which(!(ints2 = ints2c))
+which(!(floats = floatsc))
+
+tblc:{{ic: ints, ic2:ints2c, f:floatsc}}
+which(! floats = gimme select f from tblc)
+which(! ints = gimme select ic from tblc)
+which(! ints2 = gimme select ic2 from tblc)
+
+tblc:{{ic: intsc, i2:ints2, f:floats}}
+
+write_striped_to_path("junk",tblc)
+tblc2: read_striped_from_path("junk")
+len tblc2               // 100 long
+len flatten xvals tblc2 // this squishes together tblc2 int columns
+len flatten xvals select ic from tblc2  // now ic is 200 long 
+len flatten xvals select i2 from tblc2  // i2 is still 100 long
+len flatten xvals select f from tblc2   // so is f
+
+len flatten xvals tblc
+len flatten xvals select ic from tblc  // like it is supposed to be, 100
+
+
+icweird: flatten xvals select ic from tblc2 
+
+
+tbl:{{ic: intsc, i: ints2}}                     // make a table
+write_striped_to_path("junk",tbl)               // only interesting with mapped
+tbl2: read_striped_from_path("junk")
+100 = len flatten xvals select ic from tbl2   // awesome
+100 = len flatten xvals select i from tbl2    // still awesome
+200 = len flatten xvals tbl2                  // as expected
+100 = len flatten xvals select i from tbl2    // zehr gut
+200 = len flatten xvals select ic from tbl2   //SHIT DUDE
+100 = len flatten xvals select i from tbl    // zehr gut
+100 = len flatten xvals select ic from tbl   //ONLY AN ISSUE WITH MAPPED FILES
+tmp:flatten xvals select ic from tbl2        // it's still a zip
+sum tmp[range(100)+100] - ints2              // somehow the second column got stuck in here
+
+
+tbl:{{ic: ints, i: ints2}}                     // make a table, no zip
+write_striped_to_path("junk",tbl)               // only interesting with mapped
+tbl2: read_striped_from_path("junk")
+100 = len flatten xvals select ic from tbl2   // awesome
+100 = len flatten xvals select i from tbl2    // still awesome
+mtx: xvals tbl2                               // doesn't happen without the flatten
+100 = len flatten xvals select i from tbl2    // zehr gut
+100 = len flatten xvals select ic from tbl2   //still OK
+200 = len flatten xvals tbl2                  // weirdness happens here
+100 = len flatten xvals select i from tbl2    // zehr gut
+200 = len flatten xvals select ic from tbl2   //SHIT DUDE
+100 = len flatten xvals select i from tbl    // zehr gut
+100 = len flatten xvals select ic from tbl   //ONLY AN ISSUE WITH MAPPED FILES
+tmp:flatten xvals select ic from tbl2        // OK
+sum tmp[range(100)+100] - ints2              // somehow the second column got stuck in here
+

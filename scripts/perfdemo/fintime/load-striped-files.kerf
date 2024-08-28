@@ -1,0 +1,32 @@
+// generate the histgen data
+// histgen 5000 stocks, 4000 days for testing
+// up this to 50000,100000,1e6 stocks later
+// shell("findata/histgen 5000 4000")
+// hist files
+DATADIR:'/data/kerf/perfdemo-stripes'
+namer: {[x],implode("/",[DATADIR,x])}
+
+
+.Parse.strptime_format: '%m/%d/%Y'
+histPrice:build_table_from_psv(namer("HPF"),"hist-price-file.psv","EZFFFFF",1)
+histSplit:build_table_from_psv(namer("HSF"), "hist-split-file.psv","EZZF",1)
+histBase:build_table_from_psv(namer("HBF"), "hist-base-file.psv","EESESEZ",1)
+
+// generate the tickgen data
+// tickgen 100 -100 stocks, 90 days default
+// tickgen 20 100 30 // 20 stocks, 100 ticks a day, 30 days
+// shell("findata/tickgen 20 100 30")
+
+// tick files
+.Parse.strptime_format2: "%H:%M:%S"
+tickBase:build_table_from_psv(namer("TBF"),"tick-base-file.psv","EESEE",1)
+tickPrice:build_table_from_psv(namer("TPF"),"tick-price-file.psv","eIzYFFFFFFE",1)
+tickPrice['DateTime']: indexed tickPrice.TradeDate + tickPrice.TimeStamp
+
+// table for persisting the results
+tickPerf:{{bench1:0,bench2:0,bench3:0,bench4:0,bench5:0,bench6:0,total:0,completed:now()}}
+write_to_path('tickPerfOut.table',tickPerf) // remember not to nuke this when generating new stripe tables
+
+
+histPerf:{{bench1:0,bench2:0,bench3:0,bench4:0,bench5:0,bench6:0,bench7:0,bench8:0,total:0,completed:now()}}
+write_to_path('histPerfOut.table',tickPerf) // remember not to nuke this when generating new stripe tables

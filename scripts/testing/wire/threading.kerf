@@ -1,0 +1,19 @@
+// kerf_test -F -p 1234 scripts/test/wire/table-server.kerf
+s: open_socket("localhost","1234");
+ss: {[x] open_socket("localhost","1234")} mapright range 4; // open 10 sockets
+
+t0: NOW();
+{[x] return send_sync(s,"len select unique strhighent from b;")} mapright range 4;
+baseline: stamp_diff(NOW(),t0);
+
+t0: NOW();
+{[x] send_sync(x,"len select unique strhighent from b;")} mapcores ss;
+multiple: stamp_diff(NOW(),t0);
+
+display "note that mapcores unthreaded is slightly faster already"
+display flatten ["10 synchronous queries: ",format("%4f",[baseline/1e9])]
+display flatten ["10 mapcore queries: ",format("%4f",[multiple/1e9])]
+display flatten ["sequential/mapcores: ",format("%4f",[baseline/multiple])]
+exit 0
+
+

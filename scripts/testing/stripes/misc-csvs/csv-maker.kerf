@@ -1,0 +1,61 @@
+//load("scripts/test/stripes/stripe-helper.kerf")
+load("stripe-helper.kerf")
+
+timing(1)
+display "making some csv files"
+// make some wide columns
+
+
+
+display "100 wide mostly ints 100krow"
+tmp: DSDataF(100000,1999.01.01);
+{[x] tmp[implode("",["int",rep(x)])]:rand(100000,100);} mapright range(100);
+write_csv_from_table("100kby100mints.csv",tmp)
+// ~50s, 34meg
+
+display "100 wide mostly floats 100krow"
+tmp: DSDataF(100000,1999.01.01);
+{[x] tmp[implode("",["int",rep(x)])]:rand(100000,100.1);} mapright range(100);
+write_csv_from_table("100kby100mfloats.csv",tmp)
+// 2min, 82meg
+
+
+display "100 wide truncated floats 100krow"
+tmp: DSDataF(100000,1999.01.01);
+{[x] tmp[implode("",["tfloat",rep(x)])]:rand(100000,100.1);} mapright range(100);
+write_csv_from_table("100kby100tfloats.csv",tmp)
+// 2min, 82meg
+
+display "100 wide mostly strings (3125 uniques) 100krow"
+tmp: DSDataF(100000,1999.01.01);
+{[x] tmp[implode("",["string",rep(x)])]:  randstr2(100000,"balon");} mapright range(100);
+// 33.7ms to build
+
+// makes pow(7,7) uniques; more than rows -don't do this
+// tmp: DSDataF(100000,1999.01.01);
+// {[x] tmp[implode("",["string",rep(x)])]: (enum randstr(100000,"baloney"));} mapright range(100);
+write_csv_from_table("100kby100strings.csv",tmp)
+// 1m40s write    65M	100kby100strings.csv
+
+display "100 wide mostly ints 200k row"
+tmp: DSDataF(200000,2001.01.01);
+{[x] tmp[implode("",["int",rep(x)])]:rand(200000,100);} mapright range(100);
+write_csv_from_table("200kby100mints.csv",tmp)
+// 2m write  70M	200kby100mints.csv
+
+display "100 wide mostly floats 200k row"
+tmp: DSDataF(200000,2001.01.01);
+{[x] tmp[implode("",["int",rep(x)])]:rand(200000,100.1);} mapright range(100);
+write_csv_from_table("200kby100mfloats.csv",tmp)
+// 4m write  166M	200kby100mfloats.csv
+
+
+display "100 wide mostly strings (3125 uniques) 200krow"
+tmp: DSDataF(200000,2001.01.01);
+{[x] tmp[implode("",["string",rep(x)])]: (enum randstr2(200000,"balon"));} mapright range(100);
+write_csv_from_table("200kby100strings.csv",tmp)
+// 3m 20s write 129M	200kby100strings.csv
+
+
+
+

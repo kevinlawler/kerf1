@@ -1,0 +1,50 @@
+// cannon files from http://www.itl.nist.gov/div898/strd/lls/lls.shtml
+// freeny taken from the R namespace as an easy regression problem with multiple X
+// values
+
+// this little helper function puts a 1 to make it Ax + C = y
+betaC:{[a,b] lsq((transpose 1 join mapright transpose a),b)}
+
+norris:read_table_from_csv("data/norris.mat","FF",0)
+betaC(norris['col1'],norris['col']) // correct, mostly
+
+noint:read_table_from_csv("data/noint.mat","FF",0)
+betaC(noint['col1'],noint['col'])  // good
+lsq([noint['col1']],noint['col']) // good
+
+
+freeny: read_table_from_csv("data/freeny.csv","FFFFF",1)
+xx: xvals select lag_quarterly_revenue, price_index, income_level, market_potential from freeny
+betaC(xx,freeny['y']) // this is correct; 
+                      //-10.4726 0.123865 -0.75424 0.767461 1.33056
+
+longley:read_table_from_csv("data/longley.mat","FFFFFFF",0)
+xx: xvals select col1,col2,col3,col4,col5,col6 from longley
+betaC(xx,longley['col']) // fail, should be 
+// -3.46796e6 34.5568 -0.034341 -1.96214 -1.00197 -0.0978046 1823.18
+// since freeny worked, this is probably multicollinear nature of the problem
+
+pontius: read_table_from_csv("data/longley.mat","FFF",0)
+xx:[pontius['col1'];pow(pontius['col2'],2)]
+betaC(xx,pontius['col']) // fail; should be    0.000673566 7.32059e-7 -3.16082e-15
+// since freeny worked, this is probably multicollinear nature of the problem
+
+
+
+// test in K
+// xx: 3 16 #1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1.0, 83 88.5 88.2 89.5 96.2 98.1 99 100 101.2 104.6 108.4 110.8 112.6 114.2 115.7 116.9,  5.48913e10 6.73018e10 6.65919e10 8.09966e10 1.08225e11 1.20408e11 1.33506e11 1.3185e11 1.57982e11 1.75712e11 1.96044e11 1.97621e11 2.33003e11 2.52608e11 2.68503e11 307907351236.0
+
+// yy: 60323 61122 60171 61187 63221 63639 64989 63761 66019 67857 68169 66513 68655 69564 69331 70551.0
+
+// _lsq[xx;yy]  
+// 1.755821e-18 1.870008e-16 3.426702e-07
+// test in q
+// (enlist yy) lsq xx
+// 45573.41 159.2826 2.223157e-08
+
+
+
+
+
+
+

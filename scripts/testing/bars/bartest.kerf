@@ -1,0 +1,170 @@
+load('scripts/test/stripes/stripe-helper.kerf')
+.SILENT: "silent"= .Argv[2];
+
+daily: OCHLVoffset(10000,1999.01.01,floor(24 * 3600000))
+dailyShuf: daily[shuffle(range(len(daily)))]
+
+ticks: OCHLVoffset(100000,1999.01.01,5000)
+ticksRagged: ticks
+delete from ticksRagged where volume<14000
+nshuf:len ticksRagged
+seed_prng(1)
+ticksShuffle: ticksRagged[rand(nshuf,nshuf)] // do a real shuffle
+shuffleNoRep: ticksRagged[shuffle(range(len(ticksRagged)))]
+
+select avg(open) from daily group by datetime['week']
+len select avg(open) from ticks group by datetime['hour'],datetime['day']
+select avg(open) from ticks group by bars(1,datetime['hour']) // does all hours
+select avg(open) from ticks group by bars(5,datetime['minute']) // does all hours
+
+m1br: select open,datetime as day,datetime1 as hour, datetime2 as minutes from (select avg(open) from ticks group by datetime['day'],datetime['hour'],datetime['minute']) 
+
+
+m5br: select open,datetime as day,datetime1 as hour, datetime2 as minutes from (select avg(open) from ticks group by datetime['day'],datetime['hour'],(5* floor(datetime['minute']/5))) 
+
+
+display2 "checking a 1 day segment"
+aday: select * from ticks where datetime<1999.01.02
+vals: select avg(open),last(datetime) from aday where datetime['hour']=0,group by bars(1,datetime['minute'])
+valsnew: select avg(open) from aday where datetime['hour'] = 0,group by bars(1i,datetime) // new way
+gdbd("check first day 1m bars",(select open from vals) = select open from m1br where hour=0,day=1)
+gdbd("check first day 1m bars new way",(select open from valsnew) = select open from m1br where hour=0,day=1)
+
+display2 "checking next 1 day segment"
+aday: select * from ticks where (datetime>=1999.01.02),datetime<1999.01.03
+vals: select avg(open),last(datetime) from aday where datetime['hour']=0,group by bars(1,datetime['minute'])
+valsnew: select avg(open) from aday where datetime['hour'] = 0,group by bars(1i,datetime) // new way
+vals5m: select avg(open) from aday where datetime['hour'] = 0,group by bars(5i,datetime) // new way
+gdbd("check 2nd day 1m bars",(select open from vals)=(select open from m1br where hour=0,day=2))
+gdbd("check 2nd day 1m bars",(select open from valsnew)=(select open from m1br where hour=0,day=2))
+gdbd("check 2nd day 1m bars",(select open from vals5m)=(select open from m5br where hour=0,day=2))
+
+display2 "checking full calculation"
+tmp: select avg(open) from ticks group by bars(1i,datetime)
+gdbd("global 1m bars length test",len(tmp) = len m1br)
+gdbd("global bars full test",(select open from tmp) = select open from m1br) 
+
+tmp5: select avg(open) from ticks group by bars(5i,datetime)
+gdbd("global 5m bars length test",len(tmp5) = len m5br)
+gdbd("global 5m bars full test",(select open from tmp5) = select open from m5br)
+
+
+display2 "checking ragged table"
+
+display2 "checking 1m ragged bars"
+m1br: select open,datetime as day,datetime1 as hour, datetime2 as minutes from (select avg(open) from ticksRagged group by datetime['day'],datetime['hour'],datetime['minute']) // 1 minute bars
+
+aday: select * from ticksRagged where datetime<1999.01.02
+vals: select avg(open),last(datetime) from aday where datetime['hour']=0,group by bars(1,datetime['minute'])
+
+gdbd("ragged join 1m bars 1 hour",(select open from vals) = select open from m1br where hour=0,day=1)
+
+tmp: select avg(open) from ticksRagged group by bars(1i,datetime)
+gdbd("global ragged 1m bars length test",len(tmp) = len m1br)
+gdbd("global ragged 1m bars full test",(select open from tmp) = select open from m1br) 
+
+display2 "checking 5 minute ragged bars"
+m5br: select open,datetime as day,datetime1 as hour, datetime2 as minutes from (select avg(open) from ticksRagged group by datetime['day'],datetime['hour'],(5* floor(datetime['minute']/5))) // 1 minute bars
+
+tmp: select avg(open) from ticksRagged group by bars(5i,datetime)
+
+gdbd("global ragged 5m bars length test",len(tmp) = len m5br)
+gdbd("global ragged 5m bars full test",(select open from tmp) = select open from m5br) 
+
+display2 "checking 1 hourly aggregates on ragged tables"
+m1hbr: select open,datetime as day,datetime1 as hour from (select avg(open) from ticksRagged group by datetime['day'],datetime['hour'])
+tmp: select avg(open) from ticksRagged group by bars(1h,datetime)
+gdbd("global ragged 1h bars length test",len(tmp) = len m1hbr)
+gdbd("global ragged 1h bars full test",(select open from tmp) = select open from m1hbr) 
+
+display2 "checking 2 hour aggregates on ragged tables"
+m2hbr: select open,datetime as day,datetime1 as hour from (select avg(open) from ticksRagged group by datetime['day'],bars(2,datetime['hour']))
+tmp: select avg(open) from ticksRagged group by bars(2h,datetime)
+gdbd("global ragged 2h bars length test",len(tmp) = len m2hbr)
+gdbd("global ragged 2h bars full test",(select open from tmp) = select open from m2hbr) 
+
+display2 "3h bars on ragged data"
+m3hbr: select open,datetime as day,datetime1 as hour from (select avg(open) from ticksRagged group by datetime['day'],bars(3,datetime['hour']))
+tmp: select avg(open) from ticksRagged group by bars(3h,datetime)
+gdbd("global ragged 1m bars length test",len(tmp) = len m3hbr)
+gdbd("global ragged 1m bars full test",(select open from tmp) = select open from m3hbr) 
+
+
+
+display2 "shuffle 1m bars on ragged Shuffled data"
+m1brs: select open,datetime as day,datetime1 as hour, datetime2 as minutes from (sort select avg(open) from ticksShuffle group by datetime['day'],datetime['hour'],datetime['minute']) // 1 minute bars
+tmpshuf: sort (select avg(open) from ticksShuffle group by bars(1i,datetime))
+gdbd("global shuffled ragged 1m bars length test",len(tmpshuf) = len m1brs)
+gdbd("global shuffled ragged 1m bars full test",(select open from tmpshuf) = select open from m1brs) 
+
+
+display2 "shuffle 5m bars on ragged Shuffled data"
+m5brs: select open,datetime as day,datetime1 as hour, datetime2 as minutes from (sort select avg(open) from ticksShuffle group by datetime['day'],datetime['hour'],(5* floor(datetime['minute']/5))) // 5 minute bars
+tmpshuf: sort (select avg(open) from ticksShuffle group by bars(5i,datetime,min(ticksShuffle.datetime)))
+gdbd("global shuffled ragged 5m bars length test",len(tmpshuf) = len m5brs)
+gdbd("global shuffled ragged 5m bars full test",(select open from tmpshuf) = select open from m5brs) 
+
+
+display2 "shuffle 3h bars on ragged shuffled data"
+m3hbrs:  select datetime as day,datetime1 as hour,open from (sort select avg(open) from ticksShuffle group by datetime['day'],bars(3,datetime['hour']))
+tmpshuf: sort (select avg(open) from ticksShuffle group by bars(3h,datetime,min(ticksShuffle.datetime)))
+gdbd("global shuffled ragged 3h bars length test",len(tmpshuf) = len m3hbrs)
+gdbd("global shuffled ragged 3h bars full test",(select open from tmpshuf) = select open from m3hbrs) 
+
+
+display2 "shuffle no repeats, ragged 3h bars"
+m3hbrs:  select datetime as day,datetime1 as hour,open from (sort select avg(open) from shuffleNoRep group by datetime['day'],bars(3,datetime['hour']))
+tmpshuf: sort (select avg(open) from shuffleNoRep group by bars(3h,datetime,1999.01.01))
+gdbd("global shuffled ragged 3h bars length test",len(tmpshuf) = len m3hbrs)
+gdbd("global shuffled ragged 3h bars full test",(select open from tmpshuf) = select open from m3hbrs) 
+
+display2 "shuffle no repeats, ragged 30m bars"
+m30br: sort select datetime as day,datetime1 as hour, datetime2 as minutes,open from (select avg(open) from shuffleNoRep group by datetime['day'],datetime['hour'],bars(30,datetime['minute']))
+tmpshuf: sort (select avg(open) from shuffleNoRep group by bars(30i,datetime,1999.01.01))
+gdbd("global shuffled ragged 30m bars length test",len(tmpshuf) = len m30br)
+gdbd("global shuffled ragged 30m bars full test",(select open from tmpshuf) = select open from m30br) 
+
+display2 "monthly aggregates"
+d1mbr: sort select datetime as year,datetime1 as month,open from (select avg(open) from daily group by datetime['year'],datetime['month'])
+tmpshuf: sort (select avg(open) from daily group by bars(1m,datetime,1999.01.01))
+
+gdbd("1 month bars length test",len(tmpshuf) = len d1mbr)
+gdbd("1 month bars full test",(select open from tmpshuf) = select open from d1mbr) 
+
+
+d1mbr: sort select datetime as year,datetime1 as month,open from (select avg(open) from dailyShuf group by datetime['year'],datetime['month'])
+tmpshuf: sort (select avg(open) from dailyShuf group by bars(1m,datetime,1999.01.01))
+gdbd("global shuffled ragged 1month bars length test",len(tmpshuf) = len d1mbr)
+gdbd("global shuffled ragged 1month bars full test",(select open from tmpshuf) = select open from d1mbr) 
+
+d2mbr: sort select datetime as year,datetime1 as month,open from (select avg(open) from daily group by datetime['year'],2*floor((datetime['month']-1)/2))
+tmpshuf: sort (select avg(open) from daily group by bars(2m,datetime,1999.01.01))
+gdbd("global shuffled ragged 2month bars length test",len(tmpshuf) = len d2mbr)
+gdbd("global shuffled ragged 2month bars full test",(select open from tmpshuf) = select open from d2mbr) 
+
+// TODO find example where offset matters
+ts:{{vals: range(1000),tm: 1999.01.010T00:10:00 + 1i30s * mapright range(1000)}}
+v1: extract select vals from (select avg(vals) from ts group by bars(30i,tm))
+v2: extract select vals from( select avg(vals) from ts group by bars(30i,tm, 1999.01.01T10:14:00))
+extract select vals from( select avg(vals) from ts group by bars(12i,tm, 1999.01.01T00:14:00))
+gdbd("odd time offset example",51=sum(v2 = v1 - flatten [5.5,repeat(49,11),5.5]))
+
+display2 "day of week example"
+ts:{{vals:range(100),tm: 1999.08.06 + 1d * mapright range(100)}}
+v1: extract select vals from (select avg(vals) from ts group by bars(7d,tm))
+v2: extract select vals from (select avg(vals) from ts group by bars(7d,tm,1999.08.03))
+tmp: flatten [0.5,repeat(13,1),0.5]
+gdbd("daily/week offset example",len(v1)=sum(v1=v2 -tmp))
+
+
+display2 "writing global error check"
+if(!.SILENT) {
+ write_to_path(namer("00barsErrDUMP"),.Err);
+}
+display2 "printing global error check"
+display2 .Err
+
+
+display implode("",[string(sum(  .Err['0'])), " correct out of ", string(len(.Err['0']))," tests on bars checks"])
+
+exit 0

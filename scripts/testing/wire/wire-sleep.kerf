@@ -1,0 +1,20 @@
+// assumes kerf -F -p 1234 running
+// make fork-wire-test
+s: open_socket("localhost","5555");
+ss: {[x] open_socket("localhost","5555")} mapright range 10; // open 10 sockets
+
+t0: NOW();
+{[x] return send_sync(s,"sleep 100;")} mapright range 10;
+baseline: stamp_diff(NOW(),t0);
+
+t0: NOW();
+{[x] send_sync(x,"sleep 100;")} mapcores ss;
+multiple: stamp_diff(NOW(),t0);
+
+display "note that mapcores unthreaded is slightly faster already"
+display flatten ["10 synchronous sleeps: ",format("%4f",[baseline/1e9])]
+display flatten ["10 mapcore sleeps: ",format("%4f",[multiple/1e9])]
+display flatten ["sequential/mapcores: ",format("%4f",[baseline/multiple])]
+exit 0
+
+

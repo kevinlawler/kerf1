@@ -1,0 +1,8 @@
+s:open_socket("localhost","1234")
+
+
+while(1) {
+d:[TICKER: ["AAA","BB","SPY"][rand(3)], SIZE:100*rand(10), PRICE:20+rand(0.1), BAT:["B","A","T"][rand(3)], TIME:NOW()];
+send_async(s,".Feeds.FakeData.handler($1);",[d]);
+sleep(2);
+}

@@ -1,0 +1,43 @@
+DATADIR: "scripts/test/parcel/datadir/";
+PARCELDIR: "scripts/test/parcel/datadir/parcel/";
+//########################################################################//
+// keep helper functions in this file, since they probably won't be used elsewhere
+pname: {[x],implode("/",[PARCELDIR,x])};
+namer: {[x],implode("/",[DATADIR,x])};
+
+
+// loads all the parcels
+def load_all_parcel_tables(x){
+ names: {[y] implode("",explode(`"-",implode("",[x['tablename'],y])))} mapright x['subtables'];
+ paths: {[y] implode("",[x['path'],y])} mapright x['subtables'];
+return paths {[x,y] implode("",[y," : ","read_striped_from_path('",x,"');"])} mapdown names
+}
+
+def agg_on_all_parcel(agg,wh){
+ 
+}
+
+def one_at_a_time_simple(query) {
+ paths: {[y] implode("",[.Parcel.Table['path'],y])} mapright .Parcel.Table['subtables'];
+ {[y] implode("",[query," from ","read_striped_from_path('",y,"')"])} mapright paths
+}
+
+def one_at_a_time_where(query,wh) {
+ paths: {[y] implode("",[.Parcel.Table['path'],y])} mapright .Parcel.Table['subtables'];
+ {[y] implode("",[query," from ","read_striped_from_path('",y,"') where ",wh])} mapright paths
+}
+
+
+//########################################################################//
+.Parcel.Table: read_from_path(pname"parcel.meta");
+
+original: read_striped_from_path(namer("00originalTable"));
+
+display tables()
+display .Parcel.Table
+display "eval mapright load_all_parcel_tables(.Parcel.Table)"
+display "to load all parceled tables"
+
+
+
+// eval mapright one_at_a_time_simple("select unique(somestrings) ")

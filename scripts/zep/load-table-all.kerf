@@ -1,0 +1,3 @@
+divi: read_from_path('./tables/divisort.table')
+zfb:  read_from_path('./tables/zfbsort.table')
+zep:  read_from_path('./tables/zepsort.table')

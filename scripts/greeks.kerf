@@ -1,0 +1,12 @@
+
+//Normal cumulative distribution function, with mean and deviation as arguments
+def .Math.normal_cdf(value, mean, deviation) {
+  M_SQRT1_2: 1 / sqrt 2
+  return 0.5 * erfc(-(value - mean) * M_SQRT1_2 / deviation);
+}
+
+def .Math.standard_normal_cdf(x) {
+  .Math.normal_cdf(x, 0, 1)
+}
+
+

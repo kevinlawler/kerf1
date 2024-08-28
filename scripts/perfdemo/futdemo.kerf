@@ -1,0 +1,6 @@
+// Load some tick data, do stuff to it
+sb: read_from_path('/data/futures/kerf/db/sb')
+kc: read_from_path('/data/futures/kerf/db/kc')
+
+select from sb where Date_Time<=1997.02.1
+

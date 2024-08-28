@@ -1,0 +1,8 @@
+n: 10**4
+ids: range(1, n+1)
+stamps: plus(NOW(), 1s + mapright range(n))
+heartrates: 80 + rand(n, 100.0)  
+labels: range(6)
+lanes: take(n, join(labels, reverse labels))
+running: {{id: ids, stamp: stamps, heartrate: heartrates, lane: lanes}} 
+

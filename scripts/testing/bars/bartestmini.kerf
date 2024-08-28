@@ -1,0 +1,19 @@
+load('scripts/test/stripes/stripe-helper.kerf')
+ticks: OCHLVoffset(100000,1999.01.01,5000)
+ticksRagged: ticks
+delete from ticksRagged where volume<14000
+nshuf:len ticksRagged
+seed_prng(1)
+ticksShuffle: ticksRagged[rand(nshuf,nshuf)] // do a real shuffle
+
+
+conventional:  select datetime as day,datetime1 as hour,open from (sort select avg(open) from ticksShuffle group by datetime['day'],bars(5,datetime['hour']))
+withbars: sort (select avg(open) from ticksShuffle group by bars(5h,datetime,min(ticksShuffle.datetime)))
+
+len which(1999.01.01 = bars(5h,ticksShuffle.datetime,min(ticksShuffle.datetime)))
+len select * from ticksShuffle where datetime<=1999.01.01T05:00:00
+
+last( sort ticksShuffle.datetime[which(1999.01.01 = bars(5h,ticksShuffle.datetime,min(ticksShuffle.datetime,1999.01.01)))])
+
+last( sort ticksShuffle.datetime[which(1999.01.01 = bars(5h,ticksShuffle.datetime))])
+

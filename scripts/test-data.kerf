@@ -1,0 +1,39 @@
+// notes: as set up
+load("stripe-helper.kerf")
+.Parse.strptime_format: "%Y.%m.%dT%H:%M:%S.000"
+timing(1)
+nrows: 20000000  // mytestrows is 20426204 
+stringsize: 6 //8 givess 3.1G file
+// MYTEST issue WWEWWWWEEEEEEWWWWWWEWW
+tmp:{{}}
+{[x] tmp[implode("",["int",rep(x)])]:  10500 + rand(nrows,1000);} mapright range(2);
+{[x] tmp[implode("",["string",rep(x)])]: randstr3(nrows,"fhijk",stringsize);} mapright range(1);
+{[x] tmp[implode("",["int",rep(x)])]: 3420090 + rand(nrows,9000);}  mapright 2+ range(4);
+{[x] tmp[implode("",["string",rep(x)])]:  randstr3(nrows,"abcde",stringsize);} mapright 1 + range(6);
+{[x] tmp[implode("",["int",rep(x)])]: 10348+ rand(nrows,1000);}  mapright 6 +range(6);
+{[x] tmp[implode("",["string",rep(x)])]: randstr3(nrows,"vsqpr",stringsize);} mapright 7+ range(1);
+{[x] tmp[implode("",["int",rep(x)])]: 24576 + rand(nrows,1500);}  mapright 12 + range(2);
+write_csv_from_table("mytest.csv",tmp) // 100krows is 25s write, 18meg ... takes an hour to write a mytest sized file!
+//    85 m 27 s to be exact for 8 byte string
+
+// KeRF> KeRF> KeRF> scandir path: BIntsCOMP
+// scandir: No such file or directory
+// scandir path: BIntsCOMP
+// scandir: No such file or directory
+// Failed to open directory object.
+
+//  Size error
+
+// KeRF> KeRF> scandir path: BIntsCOMP
+// scandir: No such file or directory
+// scandir path: BIntsCOMP
+// scandir: No such file or directory
+// Failed to open directory object.
+
+// Process kerf segmentation fault
+
+comp: create_table_from_csv("BIntsCOMP","mytest.csv","WWEWWWWEEEEEEWWWWWWEWW",1)
+
+uncomp: create_table_from_csv("BIntsUnCOMP","mytest.csv","IIEIIIIEEEEEEIIIIIIEII",1)
+
+comp4: create_table_from_csv("BIntsCOMP4","mytest.csv","44E4444EEEEEE444444E44",1)

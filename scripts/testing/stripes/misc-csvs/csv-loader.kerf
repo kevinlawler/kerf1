@@ -1,0 +1,32 @@
+
+load("scripts/test/stripes/stripe-helper.kerf")
+headr: "FFFFIEEZ"
+.Parse.strptime_format: "%Y.%m.%dT%H:%M:%S.000"
+timing(1)
+
+junk: create_table_from_csv("MInts","100kby100mints.csv",implode("",[headr,implode("",repeat(100,"I"))]),1)
+// create takes 55s  126M from disk; 35M	100kby100mints.csv
+
+junk: create_table_from_csv("MFlts","100kby100mfloats.csv",implode("",[headr,implode("",repeat(100,"F"))]),1)
+// create takes 56s 126M from disk;   83M	100kby100mfloats.csv
+
+junk: create_table_from_csv("MTflts","100kby100tfloats.csv",implode("",[headr,implode("",repeat(100,"F"))]),1)
+// create takes 57s  126M from disk; 83M	100kby100tfloats.csv
+
+junk: create_table_from_csv("Mstrs","100kby100strings.csv",implode("",[headr,implode("",repeat(100,"E"))]),1)
+// create takes 2m33s   180M	from disk; 65M	100kby100strings.csv
+
+junk: create_table_from_csv("MstrNoE","100kby100strings.csv",implode("",[headr,implode("",repeat(100,"S"))]),1)
+// create takes 55s  826M from disk;    65M	100kby100strings.csv
+
+junk: create_table_from_csv("MInts2","200kby100mints.csv",implode("",[headr,implode("",repeat(100,"I"))]),1)
+// create takes 1m36s    234M from disk   70M	200kby100mints.csv
+
+junk: create_table_from_csv("MFlts2","200kby100mfloats.csv",implode("",[headr,implode("",repeat(100,"F"))]),1)
+// create takes 1m41s     234M	from disk      166M	200kby100mfloats.csv
+
+junk: create_table_from_csv("Mstrs2","200kby100strings.csv",implode("",[headr,implode("",repeat(100,"E"))]),1)
+// create takes          288M from disk         129M	200kby100strings.csv
+
+
+exit 0

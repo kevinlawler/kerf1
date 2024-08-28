@@ -1,0 +1,178 @@
+DATADIR:'/data/kerf/perfdemo-stripes'
+namer: {[x],implode("/",[DATADIR,x])}
+outp:{{}} // write as we go
+tickPerf:read_from_path('histPerfOut.table') //persist anyway
+
+histPrice:read_striped_from_path(namer("HPF"))                          
+histSplit:read_striped_from_path(namer("HSF"))
+histBase:read_striped_from_path(namer("HBF"))
+// eventually dividend file also?
+// open_table is the mmapped/persisted way
+LASTDAY: (flatten xvals select max(TradeDate) from histPrice)[0]
+FIRSTDAY:(flatten xvals select min(TradeDate) from histPrice)[0]
+timing(1)
+tic:now() // full cycle time
+
+// 1. [X] Get the closing price of a set of 10 stocks for a 10-year period
+//    and group into weekly, monthly and yearly aggregates. For each
+//    aggregate period determine the low, high and average closing price
+//    value. The output should be sorted by id and trade date.
+st:now()
+tickers:flatten xvals first(10,select unique Id from histBase)
+subs: select ClosePrice,Id,TradeDate from histPrice where Id in tickers,(TradeDate<(FIRSTDAY+10y))
+select avg(ClosePrice) from subs group by Id,TradeDate['year']
+select avg(ClosePrice) from subs group by Id,TradeDate['month'],TradeDate['year']
+select max(ClosePrice) from subs group by Id,TradeDate['year']
+select max(ClosePrice) from subs group by Id,TradeDate['month'],TradeDate['year']
+select min(ClosePrice) from subs group by Id,TradeDate['year']
+select min(ClosePrice) from subs group by Id,TradeDate['month'],TradeDate['year']
+select max(ClosePrice) from subs group by Id,TradeDate['week'],TradeDate['year']
+select min(ClosePrice) from subs group by Id,TradeDate['week'],TradeDate['year']
+select avg(ClosePrice) from subs group by Id,TradeDate['week'],TradeDate['year']
+ed:now()
+outp['bench1']: stamp_diff(ed,st)
+// week aggregates are slower
+
+// 2. [ ] Adjust all prices and volumes (prices are multiplied by the split
+//    factor and volumes are divided by the split factor) for a set of
+//    1000 stocks to reflect the split events during a specified 300 day
+//    period, assuming that events occur before the first trade of the
+//    split date. These are called split-adjusted prices and volumes.
+st:now()
+tickers: flatten xvals first(1000,select unique Id from histBase)
+subsplit: select Id,SplitDate as TradeDate,SplitFactor from histSplit where Id in tickers,(SplitDate<(FIRSTDAY + 600d)),(SplitDate>(FIRSTDAY+300d))
+subset: select * from histPrice where Id in tickers 
+
+splitids:flatten xvals select unique Id from subsplit
+subset1: left_join(subset,subsplit,["Id","TradeDate"]) // this makes no splitfactors
+subset1: asof_join(subset,subsplit,"Id","TradeDate") // for before day -this makes too many splitfactors...
+
+// subset1['SplitFactor']: {[x] if(x=nan){1}else{x}} mapright subset1['SplitFactor']
+
+
+cumprod: {[x] transpose(* deconverge x)}
+
+ed:now()
+outp['bench2']: stamp_diff(ed,st)
+
+// 3. [X] For each stock in a specified list of 1000 stocks, find the
+//    differences between the daily high and daily low on the day of each
+//    split event during a specified period.
+//
+// already have the tables needed to do this
+st:now()
+tmp:left_join(subsplit,subset1,["Id","TradeDate"])
+tmp['diffs']: tmp['HighPrice'] - tmp['LowPrice']
+ed:now()
+outp['bench3']: stamp_diff(ed,st)
+
+// 4. [X] Calculate the value of the S&P500 and Russell 2000 index for a
+//    specified day using unadjusted prices and the index composition of
+//    the 2 indexes (see appendix for spec) on the specified day
+st:now()
+tickerSP: flatten xvals last(500,select unique Id from histBase)
+tickerR2K: flatten xvals last(2000,select unique Id from histBase)
+select avg(ClosePrice) from histPrice where Id in tickerSP,TradeDate=LASTDAY
+select avg(ClosePrice) from histPrice where Id in tickerR2K,TradeDate=LASTDAY
+ed:now()
+outp['bench4']: stamp_diff(ed,st)
+
+// 5. [X] Find the 21-day and 5-day moving average price for a specified list
+//    of 1000 stocks during a 6-month period. (Use split adjusted prices)
+st: now()
+tickers: flatten xvals first(1000,select unique Id from histBase)
+subset: select ClosePrice,Id,TradeDate,mavg(21,ClosePrice) as ma21,mavg(5,ClosePrice) as ma5 from histPrice where (TradeDate<(FIRSTDAY + 6m)),Id in tickers
+ed:now()
+outp['bench5']: stamp_diff(ed,st)
+// 6. [X] (Based on the previous query) Find the points (specific days) when
+//    the 5-month moving average intersects the 21-day moving average for
+//    these stocks. The output is to be sorted by id and date.
+
+st:now()
+subset: select ClosePrice,Id,TradeDate,mavg(105,ClosePrice) as ma5m,mavg(21,ClosePrice) as ma21 from histPrice where (TradeDate<(FIRSTDAY + 10y)),Id in tickers
+
+subset['madiffs']: subset['ma5m'] - subset['ma21']
+subset['signs']:  {[x] if(x>0){1}else{-1}} mapleft subset['madiffs']
+// make this a vector operation
+subset['macross']: 0.5 * shift(1,subset['signs']) - subset['signs']
+select * from subset where macross!=0,group by Id
+
+ed:now()
+outp['bench6']: stamp_diff(ed,st)
+
+// 7. [ ]  Determine the value of $100,000 now if 1 year ago it was invested
+//    equally in 10 specified stocks (i.e. allocation for each stock is
+//    $10,000). The trading strategy is: When the 20-day moving average
+//    crosses over the 5-month moving average the complete allocation for
+//    that stock is invested and when the 20-day moving average crosses
+//    below the 5-month moving average the entire position is sold. The
+//    trades happen on the closing price of the trading day.
+st:now()
+tickers: flatten xvals first(10,select unique Id from histBase)
+subset: select ClosePrice,Id,TradeDate,mavg(105,ClosePrice) - mavg(21,ClosePrice) as madiff from histPrice where (TradeDate<(FIRSTDAY + 10y)),Id in tickers
+maxday: flatten xvals select max(TradeDate) from subset
+sub10y: select * from subset where Id in tickers,TradeDate>(maxday - [1y])
+sub10y['logPrice']: log(sub10y['ClosePrice'])
+firstDay: flatten xvals select min TradeDate from sub10y
+
+firstones: select logPrice,TradeDate,madiff,Id from sub10y where TradeDate =  firstDay
+
+otherones: select logPrice,TradeDate,macross,Id from sub10y where macross!=0,TradeDate>firstDay
+insert into firstones VALUES otherones
+sort firstones['TradeDate']
+select macross,TradeDate from otherones where Id='Security_0'
+
+ed:now()
+outp['bench7']: stamp_diff(ed,st)
+
+// 8.[] Find the pair-wise coefficients of correlation in a set of 10
+//    securities for a 2 year period. Sort the securities by the
+//    coefficient of correlation, indicating the pair of securities
+//    corresponding to that row. [Note: coefficient of correlation
+//    defined in appendix]
+st:now()
+cov:{[x,y] avg(x*y) - (avg(x) * avg(y))}
+ccfct:{[x,y] cov(x,y)/(std(x) * std(y))}
+tickers: flatten xvals first(10,select unique Id from histBase)
+subset:  select Id,ClosePrice,TradeDate from histPrice where Id in tickers,TradeDate<(FIRSTDAY + 2y)
+transpose flatten xvals select  ClosePrice from subset group by Id
+tmp:( flatten xvals select  ClosePrice from subset group by Id)
+names:tmp[range(10)]
+vals: tmp[10+range(10)]
+// don't know how to get the combination
+
+( cov unfold vals)
+
+ select CCFCT,Id,Id1 from (select ccfct(ClosePrice, reverse ClosePrice) as CCFCT,Id from subset group by Id,reverse Id)
+
+
+ed:now()
+outp['bench8']: stamp_diff(ed,st)
+
+// 9. Determine the yearly dividends and annual yield (dividends/average
+//    closing price) for the past 3 years for all the stocks in the
+//    Russell 2000 index that did not split during that period. Use
+//    unadjusted prices since there were no splits to adjust for.
+
+//   appendix:   S&P/Russell indices. The composition of these indexes
+//    can be generated by randomly selecting 500 and 2000 distinct
+//    securities at random uniformly and without replacement from the
+//    universe of  securities.
+
+// Coefficient of correlation for two sequences is defined as: the
+// covariance over the product of the standard deviations. If x and y are
+// vectors, then the covariance is covariance(x,y) = avg(x * y) -
+// (avg(x)*avg(y)) correlation coefficient = covariance(x * y) /
+// (stddev(x)*stddev(y)) where avg is average, stddev is the standard
+// deviation. 
+end: now()
+display stamp_diff(end,tic)/1e9
+outp['total']: stamp_diff(end,tic)
+outp['completed']: now()
+display outp
+
+
+write_to_path(flatten(['histPerfout',string(now()),'.table']),outp)
+
+insert into histPerf values outp
+write_to_path('histPerfOut.table',outpersist)

@@ -1,0 +1,252 @@
+namer: {[x],implode("/",[DATADIR,x])}
+gimmee: {[x] flatten xvals x} 
+randfix: {[x,y] seed_prng(0); rand(x,y)}
+timeseq: {[n,y] y + (24 * 3600000000) * range(n)}
+stringthing: {[n, s] s[rand(n,len(s))]}
+randstr: {[n,st] seed_prng(n); {[x] rand(x,st)} mapright repeat(n,len(st)) }
+randstr2: {[n,st] {[x] rand(x,st)} mapright repeat(n,len(st)) }
+.Err:{'0':1} // global error map
+.SILENT: 1
+
+function display2(x){
+ if(!.SILENT){display x}
+}
+
+//gdbdo:{[x,y] display flatten [x,[" BAD!!!"," good"][y]]}
+
+// this guy can do some fancier reporting later
+function gdbd(x,y) {
+ msg: flatten [x,[" BAD!!!"," good"][y]];
+ updateErr(msg,y);
+ display2 msg
+}
+
+// this guy can keep a record for later examination
+function updateErr(msg,rr){
+ ct: 1 + parse_int last xkeys .Err
+ .Err[string(ct)]:msg
+ .Err['0']: join(.Err['0'],rr)
+}
+
+// longer randoms
+function randstr3(n, st, l) {
+ ll: len(st);
+ nextra: l - ll;
+ chunk: implode("",repeat(nextra,st))[range(nextra)]
+ {[x] implode("",[chunk,rand(x,st)])} mapright repeat(n,len(st)) 
+}
+ 
+// random floats of dig significant digits
+function randdig(n,rng,dig) {
+ mv:pow(10,dig);
+ floor(rand(n,rng/1.0) * mv)/mv
+}
+
+
+// size of stripe tables trivial
+function sizeDisk(dir) {
+ tmp: shell( implode('',['du -sh ', dir]))[0]
+ return (explode(`"\t",tmp)[0]);
+}
+
+// size of stripe tables
+function sizeDir(dir,str) {
+ tmp: shell( implode('',['du -h ', dir,"\/2\/"]));
+ tmp1: {[x] explode(`"\t",x)[0]} mapright tmp;
+ tmp2: {[x] x[3]} mapdown {[x] explode(`"\/2/",x)} mapright tmp;
+ idxgd: which(4= len mapright {[x] explode(`"\/2/",x)} mapright tmp);
+ dir: tmp2[idxgd];
+ sz:tmp1[idxgd] ;
+ dir[len(dir)-1]:"999";
+ szo: sz[ascend parse_int dir];
+ desc: {[x] [x]} mapright str;
+ desc:join(desc, ["total"]);
+ return({{description: desc,size: szo}})
+}
+
+
+function floatDoubleEq(x,y) {
+abs(x - y) < 1e-6
+}
+
+
+function decDoubleEq(x,y) {
+abs(x-y) < 1e-4
+}
+
+// this guy contains several histograms of ints and strings
+function tableGeneral(n) {
+	 seed_prng(n);
+      	 {{timedate: 1999.01.01 + 2i17s times mapright range(n),
+  	     strlowent: stringthing(n,["sorted", "baloney","stuff","on","a","wire"]),
+	     someprices: randdig(n,500,2),
+	     somebasis: randdig(n,100,4),
+             intslowent: 100 + rand(n,500),
+             intshighent: 100 + rand(n,100000),
+	     strhighent: randstr3(n,"KSDJF",7),
+	     floatlowent: 0.1*n - rand(n,0.1*n),
+             floathighent: 0.45 - rand(n,0.9)}}}
+
+// makes weird stamps, reverse, etc
+function tableWeirdStamps(n) {
+           seed_prng(n);
+           nn:floor(pow(2,floor(log(2,n))));
+           tmptm: 1999.01.01 + 1i13s times mapright range(nn/4);
+           tmpagg: flatten transpose [tmptm,tmptm,tmptm,tmptm];
+           {{tdsimple: 1999.01.01 + 1i13s times mapright range(nn),
+             tsreversed: reverse(1999.01.01 + 1i13s times mapright range(nn)),
+             tmp4way: tmpagg,
+             tmp4wayrev: reverse(tmpagg),
+             tmp4wayrand: tmpagg[rand(nn,nn)],
+	     strlowent: stringthing(nn,["sorted", "baloney","stuff","on","a","wire"]),
+	     someprices: randdig(nn,500,2),
+	     somebasis: randdig(nn,100,4),
+             intslowent: 100 + rand(nn,500),
+             intshighent: 100 + rand(nn,100000),
+	     strhighent: randstr3(nn,"KSDJF",7),
+	     floatlowent: 0.1*nn - rand(nn,0.1*nn),
+             floathighent: 0.45 - rand(nn,0.9)}}}
+             
+
+
+// typical OCHLV 
+function OCHLV(n,st) {
+       seed_prng(1);  
+       {{open:10+rand(n,1.0),
+       close:10+rand(n,1.0),
+       high:11+rand(n,1.2),
+       low:9+rand(n,0.9),
+       volume:10000+rand(n,10000),
+       datetime:timeseq(n,st)}}}
+
+// typical OCHLV with strings
+function DSDataF(n,st) {
+       seed_prng(10);  
+       {{open:  10+rand(n,1.0),
+       close: 10+rand(n,1.0),
+       high: 11+rand(n,1.2),
+       low: 9+rand(n,0.9),
+       volume:  10000+rand(n,10000),
+       astring: enum randstr(n,"BADKJH")
+       enumstring: enum randstr(n,"GUTLKJ")
+       datetime:timeseq(n,st)}}}
+
+function OCHLVoffset(n,st,ofms) {
+       seed_prng(1);  
+       {{open:10+rand(n,1.0),
+       close:10+rand(n,1.0),
+       high:11+rand(n,1.2),
+       low:9+rand(n,0.9),
+       volume:10000+rand(n,10000),
+       datetime: st + floor(1000000*ofms)*range(n)}}}
+
+function OCHLVoffsetK(n,st,ofms,names) {
+       seed_prng(1);  
+       tickers:
+       {{open:10+rand(n,1.0),
+       close:10+rand(n,1.0),
+       high:11+rand(n,1.2),
+       low:9+rand(n,0.9),
+       volume:10000+rand(n,10000),
+       datetime: st + floor(1000000*ofms)*range(n)}}}
+
+
+// function IntsStrings(n) {
+//          seed_prng(1000)
+//          {{openI: 1000 + rand(n,100),
+//          closeI: 1000 + rand(n,100),
+//          highI: 1100 + rand(n,120),
+//          lowI: 900 + rand(n,90),
+//          volume: 100000+rand(n,10000),
+//          astring: enum randstr(n,"BADKJH"),
+//          anothers: enum randstr(n,"GUTLKJ")}}
+// }
+
+
+function tablePayload(n) {
+ 	 seed_prng(n);
+ 	 {{sometimes: 1999.01.01 + 1h15i17s times mapright range(n),
+              somestrings: stringthing(n,["baloney","stuff","on","a","wire"]),
+ 	     someints: rand(n,n),
+ 	     somefloats: 0.1*n - rand(n,0.1*n),
+ 	     sorttimes: indexed 1997.05.01 + 1h10i9s times mapright range(n),
+ 	     sortstrings: hashed stringthing(n,["sorted", "baloney","stuff","on","a","wire"]),
+ 	     sortints: indexed rand(n,n),
+ 	     sortfloats: indexed 0.1*n - rand(n,0.1*n)}}
+ }
+
+
+function tablePayload2(n,interv) {
+         inter: floor(86400000000000 /interv);
+ 	 seed_prng(n);
+ 	 {{sometimes: 1999.01.01 + inter times mapright range(n),
+              somestrings: stringthing(n,["baloney","stuff","on","a","wire"]),
+ 	     someints: rand(n,n),
+ 	     somefloats: 0.1*n - rand(n,0.1*n),
+ 	     sorttimes: indexed 1997.05.01 + 1h10i9s times mapright range(n),
+ 	     sortstrings: hashed stringthing(n,["sorted", "baloney","stuff","on","a","wire"]),
+ 	     sortints: indexed rand(n,n),
+ 	     sortfloats: indexed 0.1*n - rand(n,0.1*n)}}
+ }
+ 
+ 
+function mapPayload(n) {
+ 	 seed_prng(n);
+ 	 {sometimes: 1999.01.01 + 1h15i17s times mapright range(n),
+              somestrings: stringthing(n,["baloney","stuff","on","a","wire"]),
+ 	     someints: rand(n,n),
+ 	     somefloats: 0.1*n - rand(n,0.1*n),
+ 	     sorttimes: indexed 1997.05.01 + 1h10i9s times mapright range(n),
+ 	     sortstrings: hashed stringthing(n,["sorted", "baloney","stuff","on","a","wire"]),
+ 	     sortints: indexed rand(n,n),
+ 	     sortfloats: indexed 0.1*n - rand(n,0.1*n)}
+}
+ 
+function atlasPayload(n) {
+	 atlas(mapPayload(n))
+}
+
+
+
+function atlasMaker(n) {
+ seed_prng(floor(n));
+ atlas(randmap mapright range n)
+}
+
+function atlasIntMaker(n) {
+ seed_prng(floor(n));
+ atlas(randintmap mapright range n)
+}
+
+def randmap(x){
+ if(1=x mod 2) {
+  return {a:rand 1.0, b:rand 2.0, c:rand 10}
+ } else {
+  return {a:rand 1.0, b:rand 20, c:rand 0.5, d:rand 1.0, e:flatten(stringthing(1,['a','cd','jh']))}
+ }
+}
+
+def randintmap(x){
+ if(1=x mod 2) {
+  return {a:rand 10, b:rand 20, c:rand 10}
+ } else {
+  return {a:rand 100, b:rand 20, c:rand 050, d:rand 10, e:flatten(stringthing(1,['a','cd','jh']))}
+ }
+}
+
+
+def repRows(t,frac) {
+// repeats rows by frac, adds index for checks
+ nrow: len(t);
+ seed_prng(0);
+ idx: deal(floor(0.2*nrow),t);
+ o: insert into ident(t) values idx;
+ o['idx']:range(len(o));
+ return o;
+}
+
+
+def round(a,n){
+ rv:pow(10,n);
+ return floor((rv*a) + 0.5)/rv;
+}

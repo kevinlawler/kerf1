@@ -1,0 +1,32 @@
+// Shasha's useful TS thing
+// http://cs.nyu.edu/shasha/fintime.html
+// first load/write the data
+
+// generate the histgen data
+// histgen 5000 stocks, 5000 days for testing
+// up this to 20000,50000,100000 stocks later
+shell("findata/histgen 5000 5000")
+// hist files
+.Parse.strptime_format: '%m/%d/%Y'
+histPrice:read_table_from_delimited_file("|","hist-price-file.psv","EZFFFFF",1)
+histSplit:read_table_from_delimited_file("|","hist-split-file.psv","EZZF",1)
+histBase:read_table_from_delimited_file("|","hist-base-file.psv","EESESEZ",1)
+
+// generate the tickgen data
+// tickgen 100 -100 stocks, 90 days default
+// tickgen 20 100 30 // 20 stocks, 100 ticks a day, 30 days
+shell("findata/tickgen 20 100 30")
+
+// tick files
+.Parse.strptime_format2: "%H:%M:%S"
+tickBase:read_table_from_delimited_file("|","tick-base-file.psv","EESEE",1)
+tickPrice:read_table_from_delimited_file("|","tick-price-file.psv","EIZzFFFFFFE",1)
+tickPrice['DateTime']: tickPrice.TradeDate + tickPrice.TimeStamp
+
+//persist the values
+write_to_path("/data/kerf/perfdb/histPrice",histPrice)
+write_to_path("/data/kerf/perfdb/histSplit",histSplit)
+write_to_path("/data/kerf/perfdb/histBase",histBase)
+write_to_path("/data/kerf/perfdb/tickBase",tickBase)
+write_to_path("/data/kerf/perfdb/tickPrice",tickPrice)
+

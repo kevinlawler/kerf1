@@ -1,0 +1,424 @@
+// stripe/zip correctness
+load("scripts/test/stripes/stripe-helper.kerf");
+DATADIR: "scripts/test/stripes/datadir/";
+
+mkdir(DATADIR);
+csv1: namer('00tableTst-test.csv');
+csv2: namer('00tableTst-test2.csv');
+csv3: namer('00tableTst-test3.csv');
+csv4: namer('00tableTst-test4.csv');
+csv5: namer('00tableTst-test5.csv');
+csv6: namer('00tableTst-test6.csv');
+csv7: namer('00tableTst-test7.csv');
+
+MAXROWS: 10000
+.SILENT: "silent"= .Argv[2];
+//display .Argv;
+
+.Parse.strptime_format: "%Y.%m.%dT%H:%M:%S.%q"
+
+
+// basic stuff is joins, group by, select by day/etc.
+display2 "creating test sets"
+tbl: tableGeneral(MAXROWS);
+//ochl: DSDataF(MAXROWS,1999.01.01); // don't need this yet
+tblmini: (select timedate,strlowent,intslowent,somebasis from tbl)[range(200)];
+update tblmini set timedate =  tblmini['timedate'] + mapleft -1* 0i1s;
+
+
+display2 "writing test sets"
+write_csv_from_table(csv1,tbl)
+// write_csv_from_table(csv2,ochl) 
+write_csv_from_table(csv3,tblmini)
+
+display2 "reading test sets"
+tblm: read_table_from_csv(csv1,"ZEFFIIEFF",1);
+// ochlm: read_table_from_csv(csv2,"FFFFISSZ",1);
+minim: read_table_from_csv(csv3,"ZEIF",1);
+tbls:create_table_from_csv(namer("00tableTst"),csv1,"ZEFFIIEFF",1);
+tbl4:create_table_from_csv(namer("00tableTst4"),csv1,"ZEFF44EFF",1);
+tblv:create_table_from_csv(namer("00tableTstV"),csv1,"ZEVV44SVV",1);
+tblw:create_table_from_csv(namer("00tableTstW"),csv1,"ZEFFWWEFF",1);
+tbl0:create_table_from_csv(namer("00tableTst0"),csv1,"ZEFFWWE00",1);
+tbld:create_table_from_csv(namer("00tableTstd"),csv1,"ZEDDIIEFF",1);
+tbl3:create_table_from_csv(namer("00tableTst3"),csv1,"Z3FFII3FF",1);
+tbl9:create_table_from_csv(namer("00tableTst9"),csv1,"9EFFIIEFF",1);
+
+if(.Argv[2]="compress") {
+//display2 xvals sizeDir("00tableTst/","ZEFFIIEFF")
+//display2 xvals sizeDir("00tableTst4/","ZEFF44EFF")
+//display2 xvals sizeDir("00tableTstV/","ZEVV44SVV");
+//display2 xvals sizeDir("00tableTstW/","ZEFFWWEFF")
+//display2 xvals sizeDir("00tableTst0/","ZEFFWWE00")
+//display2 xvals sizeDir("00tableTstd/","ZEDDIIEFF")
+//display2 xvals sizeDir("00tableTst3/","Z3FFII3FF")
+//display2 xvals sizeDir("00tableTst9/","9EFFIIEFF")
+}
+
+minis: create_table_from_csv(namer("00tableTstMini"),csv3,"ZEIF",1);
+
+display2 "test sets loaded"
+display2 "" 
+
+
+display2 "checking subset correctness"
+gdbd("checking subselect 1",1692=len select * from tbls where strlowent ="baloney");
+gdbd("checking subselect 2",4=len select * from tbls where strlowent ="baloney",intslowent=365);
+gdbd("checking subselect 3",698=len select from tbls where strlowent ="on",timedate>1999.01.10);
+gdbd("checking subselect 4", "wire"=extract first  select strlowent from tbls where strhighent = "KSDKDJK");
+gdbd("checking subselect 5",1999.01.01T01:31:20.000 = extract first  select timedate from tbls where strhighent = "KSKSFFK");
+gdbd("checking subselect 6","KSKSFFK"=extract select strhighent from tbls where timedate = 1999.01.01T01:31:20.000);
+
+display2 "group by check"
+
+//tmpgb: select first timedate as td, last timedate as tdl, last someprices as lp, first someprices as fp, avg(intslowent) as avgi,first intslowent as fi, last strhighent as el,first strhighent as efr from tbls group by strlowent;
+
+ tmpgb: select first timedate as td, last timedate as tdl, last someprices as lp, first someprices as fp, avg(intslowent) as avgi,first intslowent as fi, last strhighent as el,first strhighent as efr,var(intslowent) as vari from tbls group by strlowent;
+
+
+gdbd(["groupby first time"],tmpgb.td=[1999.01.01, 1999.01.01T00:02:17.000, 1999.01.01T00:04:34.000, 1999.01.01T00:06:51.000, 1999.01.01T00:13:42.000, 1999.01.01T00:18:16.000]);
+gdbd(["groupby last time"],tmpgb.tdl=[1999.01.16T20:24:12.000, 1999.01.16T20:26:29.000, 1999.01.16T20:28:46.000, 1999.01.16T20:21:55.000, 1999.01.16T19:52:14.000, 1999.01.16T20:31:03.000]);
+gdbd(["group by last float"],tmpgb.lp=[198.85, 116.35, 239.79, 146.99, 216.25, 237.74]);
+gdbd(["group by first float"],tmpgb.fp=[432.99, 56.79, 94.01, 420, 285.53, 185.85]);
+gdbd(["group by avg int"],round(tmpgb.avgi,3)=[351.113, 351.603, 343.469, 349.777, 354.659, 353.274]);
+gdbd(["group by avg int"],tmpgb.fi=[555, 199, 438, 277, 365, 499]);
+gdbd(["group by var int"],round(tmpgb.vari,1)=[21627.5, 20845.1, 20760.8, 20265.4, 20176.1, 21457.2]);
+gdbd(["group by first enum"],tmpgb.efr = ["KSFDFJK", "KSFKSJF", "KSFJKKK", "KSDKDJK", "KSDKDDS", "KSSKKFD"]);
+gdbd(["group by last enum"],tmpgb.el = ["KSJFFJF", "KSJKKDF", "KSKDDSS", "KSKFDKK", "KSJDDJK", "KSSJFDD"]);
+
+
+display2 "checking indexed, nonindexed, sorted, nonsorted range select correctness"
+cannon: extract sort select strlowent from tbl where timedate between [1999.01.01T01:01:01,1999.01.01T01:18:01];
+tblind: tbl;
+tblind['timedate']: indexed tblind['timedate'];
+tblsort: sort tbl;
+gdbd(["indexed table range select correctness"],cannon=extract sort select strlowent from tblind where timedate between [1999.01.01T01:01:01,1999.01.01T01:18:01]);
+gdbd(["sorted table range select correctness"],cannon=extract sort select strlowent from tblsort where timedate between [1999.01.01T01:01:01,1999.01.01T01:18:01]);
+
+newkeys: ["strlowent","intslowent","timedate"] join xkeys(tblsort) except ["timedate","strlowent","intslowent"]
+newtb: tbl[newkeys];
+newtind: newtb;
+newtind['timedate']: indexed newtind['timedate'];
+newtsort: sort newtb;
+gdbd(["indexed table range select correctness"],cannon=extract sort select strlowent from newtind where timedate between [1999.01.01T01:01:01,1999.01.01T01:18:01]);
+gdbd(["sorted table range select correctness"],cannon=extract sort select strlowent from newtsort where timedate between [1999.01.01T01:01:01,1999.01.01T01:18:01]);
+
+
+display2 "checking sort debug flag";
+gdbd("first sort_debug should be 0",0=sort_debug(tbl)['attr_sorted']);
+gdbd("first sort_debug should be 1",1=sort_debug(tbl)['attr_sorted']);
+gdbd("first sort_debug persisted should be 0",0=sort_debug(tbls)['attr_sorted']);
+gdbd("first sort_debug persisted should be 1",1=sort_debug(tbls)['attr_sorted']);
+
+// testing wildcard load
+display2 "try loading stripes by wildcards"
+tblwild: create_table_from_csv(namer("00tableTstWild"),csv1,"*3FFII3FF",1);
+tblwild: create_table_from_csv(namer("00tableTstWild"),csv1,"Z*FFII3FF",1);
+tblwild: create_table_from_csv(namer("00tableTstWild"),csv1,"Z**FII3FF",1);
+tblwild: create_table_from_csv(namer("00tableTstWild"),csv1,"Z**FII3**",1);
+tblwild: create_table_from_csv(namer("00tableTstWild"),csv1,"Z**FII3**",1);
+tblwild: create_table_from_csv(namer("00tableTstWild"),csv1,"Z**FII3**",1);
+tblwild: create_table_from_csv(namer("00tableTstWild"),csv1,"Z**FI*3**",1);
+tblwild: create_table_from_csv(namer("00tableTstWild"),csv1,"Z***I*3*F",1);
+tblwild: create_table_from_csv(namer("00tableTstWild"),csv1,"****I*3**",1);
+tblwild['newcol']: range(MAXROWS);
+tblwild['newcol2']: 0.2*rand(MAXROWS,100);
+tblwild['newcol3']: compressed 0.5*rand(MAXROWS,100);
+gdbd(["add/check keys to striped wildcard"],  ["intslowent", "strhighent", "newcol", "newcol2", "newcol3"] = xkeys tblwild)
+tblwild: create_table_from_csv(namer("00tableTstWild"),csv1,"*S",1);
+tblwild: create_table_from_csv(namer("00tableTstWild"),csv1,"*S*S",1);
+display2 "success in loading wildcards"
+
+display2 ""
+display2 "try loading whole table wildcards"
+tblwild: read_table_from_csv(csv1,"*EFFIIEFF",1);
+tblwild: read_table_from_csv(csv1,"**FFIIEFF",1);
+tblwild: read_table_from_csv(csv1,"**FFIIE**",1);
+tblwild: read_table_from_csv(csv1,"**F*I*E**",1);
+tblwild['newcol']:range(MAXROWS);
+tblwild['newcol2']:range(MAXROWS);
+gdbd(["adding/checking keys to in mem wildcard"],  ["someprices", "intslowent", "strhighent", "newcol", "newcol2"] = xkeys tblwild)
+tblwild: read_table_from_csv(csv1,"SSF*II*F",1);
+tblwild: read_table_from_csv(csv1,"SS***I",1);
+tblwild['newcol']:range(MAXROWS);
+tblwild['newcol2']:range(MAXROWS);
+gdbd(["adding/checking keys to in mem wildcard"],["timedate", "strlowent", "intshighent", "newcol", "newcol2"] = xkeys tblwild)
+display2 "whole table load wildcard success"
+display2 ""
+
+// uncompress checks
+// the 3 uncompresses presently have a memory leak; everything else is A-OK
+display2 "checking decompress"
+gdbd("checking 3 type lowent unzip",MAXROWS=sum((flatten xvals select strlowent from tbl3) = (flatten xvals select strlowent from tbls)))
+gdbd("checking 3 type highent unzip",MAXROWS=sum((flatten xvals select strhighent from tbl3) = (flatten xvals select strhighent from tbls)))
+gdbd("checking 9 type unzip",MAXROWS=sum((flatten xvals select timedate from tbl9) = flatten xvals select timedate from tbls))
+gdbd("checking D type price unzip",MAXROWS=sum(decDoubleEq((flatten xvals select someprices from tbld), (flatten xvals select someprices from tbls))))
+gdbd("checking D type basis unzip",MAXROWS=sum(decDoubleEq((flatten xvals select somebasis from tbld), (flatten xvals select somebasis from tbls))))
+
+
+// cor1 = 4989
+display2 "checking selects"
+cor1: len flatten xvals select strlowent from tbl where intshighent>50000;
+cor2: len flatten xvals select strhighent from tbl where somebasis<50;
+cor3: len flatten xvals select strhighent from tbl where timedate<1999.01.04
+
+gdbd("table mem-read select",cor1 = len flatten xvals select strlowent from tblm where intshighent>50000)
+gdbd("stripe select",cor1 = len flatten xvals select strlowent from tbls where intshighent>50000)
+gdbd("stripe 4 select",cor1 = len flatten xvals select strlowent from tbl4 where intshighent>50000)
+gdbd("stripe V select",cor2 = len flatten xvals select strhighent from tblv where somebasis <50)
+gdbd("stripe W select",cor1 = len flatten xvals select strlowent from tblw where intshighent>50000)
+gdbd("stripe 0 select",cor2 = len flatten xvals select strhighent from tbl0 where somebasis<50)
+gdbd("stripe D select",cor2 = len flatten xvals select strhighent from tbld where somebasis <50)
+gdbd("stripe 9 select",cor3 = len flatten xvals select strhighent from tbl9 where timedate<1999.01.04)
+
+
+// this is issue already; in memory doesn't match striped
+//tmp: select avg(floatlowent) from tbl group by strlowent
+//cor2: flatten xvals select floatlowent from tmp[ascend tmp.strlowent]
+display2 "checking aggregates"
+tmp: select avg(floatlowent) from tblm group by strlowent;
+cor2:  flatten xvals select floatlowent from tmp[ascend tmp.strlowent];
+tmp: select avg(intslowent) from tblm group by strlowent;
+cor3:  flatten xvals select intslowent from tmp[ascend tmp.strlowent];
+
+tmp: select avg(floatlowent) from tbls group by strlowent;
+gdbd(["aggregate stripe"],cor2 =  flatten xvals select floatlowent from tmp[ascend tmp.strlowent])
+tmp: select avg(floatlowent) from tbl4 group by strlowent;
+gdbd(["aggregate stripe 4"],cor2 =  flatten xvals select floatlowent from tmp[ascend tmp.strlowent])
+tmp: select avg(floatlowent) from tblv group by strlowent;
+gdbd(["aggregate stripe V"],cor2 =  flatten xvals select floatlowent from tmp[ascend tmp.strlowent])
+tmp: select avg(floatlowent) from tblw group by strlowent;
+gdbd(["aggregate stripe W"],cor2 =  flatten xvals select floatlowent from tmp[ascend tmp.strlowent])
+tmp: select avg(floatlowent) from tbl0 group by strlowent;
+gdbd(["aggregate stripe 0"],floatDoubleEq(cor2,  flatten xvals select floatlowent from tmp[ascend tmp.strlowent])) // need to make approximate comparison
+tmp: select avg(floatlowent) from tbld group by strlowent;
+gdbd(["aggregate stripe D"],cor2 =  flatten xvals select floatlowent from tmp[ascend tmp.strlowent]) // direct test
+tmp: select avg(intslowent) from tblw group by strlowent;
+gdbd(["aggregate stripe W int"],cor3 =  flatten xvals select intslowent from tmp[ascend tmp.strlowent])
+
+
+display2 "sorting timedate"
+update tblm set timedate = (sort select timedate from tblm)
+update tbls set timedate = (sort select timedate from tbls)
+update tbl4 set timedate = (sort select timedate from tbl4)
+update tblv set timedate = (sort select timedate from tblv)
+update tblw set timedate = (sort select timedate from tblw)
+update tbl0 set timedate = (sort select timedate from tbl0)
+update tbld set timedate = (sort select timedate from tbld)
+update minim set timedate = (sort select timedate from minim)
+
+// joins
+display2 "testing joins, disk to offdisk"
+tstjn: asof_join(tblm[range(200)],minim,"strlowent","timedate");
+tstjns: asof_join(tbls[range(200)],minim,"strlowent","timedate");
+tstjnw: asof_join(tblw[range(200)],minim,"strlowent","timedate");
+tstjnv: asof_join(tblv[range(200)],minim,"strlowent","timedate");
+tstjn4: asof_join(tbl4[range(200)],minim,"strlowent","timedate");
+tstjn0: asof_join(tbl0[range(200)],minim,"strlowent","timedate");
+tstjnd: asof_join(tbld[range(200)],minim,"strlowent","timedate");
+tstjn9: asof_join(tbl9[range(200)],minim,"strlowent","timedate");
+
+gdbd(["join mem/mem"],0 = flatten xvals select sum(somebasis-somebasis1) from tstjn)
+gdbd(["join stripe/mem"],0 = flatten xvals select sum(somebasis-somebasis1) from tstjns)
+gdbd(["join stripe W/mem"],0 = flatten xvals select sum(somebasis-somebasis1) from tstjnw)
+gdbd(["join stripe V/mem"],0 = flatten xvals select sum(somebasis-somebasis1) from tstjnv)
+gdbd(["join stripe 4/mem"],0 = flatten xvals select sum(somebasis-somebasis1) from tstjn4)
+gdbd(["join stripe 0/mem"],0 = flatten xvals select sum(somebasis-somebasis1) from tstjn0)
+gdbd(["join stripe D/mem"], (MAXROWS/*0.0001) > flatten xvals select sum(abs(somebasis-somebasis1)) from tstjnd) // since dropping the last significant digit
+gdbd(["join stripe 9/mem"],0 = flatten xvals select sum(somebasis-somebasis1) from tstjn9)
+
+display2 "testing joins, disk to disk"
+tstjn: asof_join(tblm[range(200)],minis,"strlowent","timedate");
+tstjns: asof_join(tbls[range(200)],minis,"strlowent","timedate");
+tstjnw: asof_join(tblw[range(200)],minis,"strlowent","timedate");
+tstjnv: asof_join(tblv[range(200)],minis,"strlowent","timedate");
+tstjn4: asof_join(tbl4[range(200)],minis,"strlowent","timedate");
+tstjn0: asof_join(tbl0[range(200)],minis,"strlowent","timedate");
+tstjnd: asof_join(tbld[range(200)],minis,"strlowent","timedate");
+tstjnd: asof_join(tbl9[range(200)],minis,"strlowent","timedate");
+gdbd(["join mem/stripe"],0 = flatten xvals select sum(somebasis-somebasis1) from tstjn)
+gdbd(["join stripe/stripe"],0 = flatten xvals select sum(somebasis-somebasis1) from tstjns)
+gdbd(["join stripe W/stripe"],0 = flatten xvals select sum(somebasis-somebasis1) from tstjnw)
+gdbd(["join stripe V/stripe"],0 = flatten xvals select sum(somebasis-somebasis1) from tstjnv)
+gdbd(["join stripe 4/stripe"],0 = flatten xvals select sum(somebasis-somebasis1) from tstjn4)
+gdbd(["join stripe 0/stripe"],0 = flatten xvals select sum(somebasis-somebasis1) from tstjn0)
+gdbd(["join stripe D/stripe"],(MAXROWS*0.0001) > flatten xvals select sum(abs(somebasis-somebasis1)) from tstjnd) // again you truncated
+gdbd(["join stripe 9/mem"],0 = flatten xvals select sum(somebasis-somebasis1) from tstjn9)
+
+display2 "testing zips, drops; use join examples"
+tstjns: write_striped_to_path(namer("00tableTstjns"),tstjn);
+//update tstjnw set intslowent1 = compressed intslowent1 // this doesn't work
+tstjnw['intslowent1']: compressed flatten xvals select intslowent1 from tstjnw;
+gdbd("zip W column stripe","zip" = kerf_type_name tstjnw['intslowent1'])
+tstjnw1: write_striped_to_path(namer("00tableTstjns"),tstjnw);
+gdbd("zip standard stripe int col","zip"=kerf_type_name flatten xvals select intslowent1 from tstjnw1) // wrote a zip
+delete_keys(tstjnw1,["intslowent"]);
+gdbd("removed int key stripes",0 = has_key(tstjnw1,"intslowent"))
+delete_keys(tstjnw1,["intslowent1","somebasis1"]);
+gdbd("removed zip int key stripes",0 = has_key(tstjnw1,"intslowent1") )
+gdbd("removed float key stripes",0 = has_key(tstjnw1,"somebasis1") )
+gdbd("stripe keys correctness",8 = len xkeys tstjnw1)
+gdbd("memory keys correctness",11 = len xkeys tstjnw)
+tstjnw: delete_keys(tstjnw,["somebasis"]); // unexpected in memory delete keys 
+// should probably not have the tstjnw: clause in future tests: issue 117
+gdbd("successfully removed in-memory column with overwrite",10 = len xkeys tstjnw )
+tstjnw1['newtime']: compressed flatten xvals select timedate from tstjnw1;
+gdbd("successfully added compressed timedate",(len select strlowent from tstjnw1 where newtime >1999.01.01T03:01:17) = len select strlowent from tstjnw1 where timedate >1999.01.01T03:01:17)
+//update tstjnw1 set newtime1 = compressed flatten xvals select timedate from tstjnw1;
+
+
+
+// moving averages
+display2 "adding float moving averages"
+update tblm set ma21 = mavg(21,floatlowent) group by strlowent
+update tbls set ma21 = mavg(21,floatlowent) group by strlowent // causes rank error first call
+update tbl4 set ma21 = mavg(21,floatlowent) group by strlowent
+update tblw set ma21 = mavg(21,floatlowent) group by strlowent
+update tblv set ma21 = mavg(21,floatlowent) group by strlowent
+update tbl0 set ma21 = mavg(21,floatlowent) group by strlowent
+update tbld set ma21 = mavg(21,floatlowent) group by strlowent
+
+
+display2 "testing float moving averages"
+correctMA: flatten xvals select ma21 from tblm
+gdbd("stripe table float ma",MAXROWS = sum (correctMA = (flatten xvals select ma21 from tbls)))
+gdbd("stripe table float ma 4",MAXROWS = sum (correctMA = (flatten xvals select ma21 from tbl4)))
+gdbd("stripe table float ma W",MAXROWS = sum (correctMA = (flatten xvals select ma21 from tblw)))
+gdbd("stripe table float ma V",MAXROWS = sum (correctMA = (flatten xvals select ma21 from tblv)))
+gdbd("stripe table float ma 0",MAXROWS = sum (decDoubleEq(correctMA, (flatten xvals select ma21 from tbl0))))
+gdbd("stripe table float ma D",MAXROWS = sum (correctMA = (flatten xvals select ma21 from tbld)))
+
+display2 "generating int moving averages"
+update tblm set maint = mavg(10,intslowent) group by strlowent
+update tbls set maint = mavg(10,intslowent) group by strlowent
+update tbl4 set maint = mavg(10,intslowent) group by strlowent
+update tblw set maint = mavg(10,intslowent) group by strlowent
+update tblv set maint = mavg(10,intslowent) group by strlowent
+update tbl0 set maint = mavg(10,intslowent) group by strlowent
+update tbld set maint = mavg(10,intslowent) group by strlowent
+
+display2 "testing int moving averages"
+correctMA: flatten xvals select maint from tblm
+gdbd("stripe table int ma",MAXROWS = sum (correctMA = (flatten xvals select maint from tbls)))
+gdbd("stripe table int ma 4",MAXROWS = sum (correctMA = (flatten xvals select maint from tbl4)))
+gdbd("stripe table int ma W",MAXROWS = sum (correctMA = (flatten xvals select maint from tblw)))
+gdbd("stripe table int ma V",MAXROWS = sum (correctMA = (flatten xvals select maint from tblv)))
+gdbd("stripe table int ma 0",MAXROWS = sum (correctMA = (flatten xvals select maint from tbl0)))
+gdbd("stripe table int ma D",MAXROWS = sum (correctMA = (flatten xvals select maint from tbld)))
+
+
+display2 "do append checks (TODO test integrity beyond rows)"
+tmp: select * from tbl where timedate<1999.01.02;
+tmp2: select * from tbl where timedate>1999.01.02,timedate<1999.01.04;
+tmp3: select * from tbl where timedate>1999.01.04,timedate<1999.01.06;
+proper: sum len mapright [tmp,tmp2,tmp3];
+write_csv_from_table(csv4,tmp);
+write_csv_from_table(csv5,tmp2);
+write_csv_from_table(csv6,tmp3);
+
+
+tbls:create_table_from_csv(namer("00tableTst2"),csv4,"ZEFFIIEFF",1);
+tbls:append_table_from_csv(namer("00tableTst2"),csv5,"ZEFFIIEFF",1);
+tbls:append_table_from_csv(namer("00tableTst2"),csv6,"ZEFFIIEFF",1);
+gdbd("csv appends stripes",proper = len tbls)
+
+tbl4:create_table_from_csv(namer("00tableTst42"),csv4,"ZEFF44EFF",1);
+tbl4:append_table_from_csv(namer("00tableTst42"),csv5,"ZEFF44EFF",1);
+tbl4:append_table_from_csv(namer("00tableTst42"),csv6,"ZEFF44EFF",1);
+gdbd("csv appends stripes 4",proper = len tbl4)
+
+tblv:create_table_from_csv(namer("00tableTstV2"),csv4,"ZEVV44SVV",1);
+tblv:append_table_from_csv(namer("00tableTstV2"),csv5,"ZEVV44SVV",1);
+tblv:append_table_from_csv(namer("00tableTstV2"),csv6,"ZEVV44SVV",1);
+gdbd("csv appends stripes V",proper = len tblv)
+
+tblw:create_table_from_csv(namer("00tableTstW2"),csv4,"ZEFFWWEFF",1);
+tblw:append_table_from_csv(namer("00tableTstW2"),csv5,"ZEFFWWEFF",1);
+tblw:append_table_from_csv(namer("00tableTstW2"),csv6,"ZEFFWWEFF",1);
+gdbd("csv appends stripes W",proper = len tblw)
+
+tbl0:create_table_from_csv(namer("00tableTst02"),csv4,"ZEFFWWE00",1);
+tbl0:append_table_from_csv(namer("00tableTst02"),csv5,"ZEFFWWE00",1);
+tbl0:append_table_from_csv(namer("00tableTst02"),csv6,"ZEFFWWE00",1);
+gdbd("csv appends stripes 0",proper = len tbl0)
+
+tbld:create_table_from_csv(namer("00tableTstd2"),csv4,"ZEDDIIEFF",1);
+tbld:append_table_from_csv(namer("00tableTstd2"),csv5,"ZEDDIIEFF",1);
+tbld:append_table_from_csv(namer("00tableTstd2"),csv6,"ZEDDIIEFF",1);
+gdbd("csv appends stripes D",proper = len tbld)
+
+tbl3:create_table_from_csv(namer("00tableTst32"),csv4,"Z3FFII3FF",1);
+tbl3:append_table_from_csv(namer("00tableTst32"),csv5,"Z3FFII3FF",1);
+tbl3:append_table_from_csv(namer("00tableTst32"),csv6,"Z3FFII3FF",1);
+gdbd("csv appends stripes 3",proper = len tbl3)
+
+tbl9:create_table_from_csv(namer("00tableTst92"),csv4,"9EFFIIEFF",1);
+tbl9:append_table_from_csv(namer("00tableTst92"),csv5,"9EFFIIEFF",1);
+tbl9:append_table_from_csv(namer("00tableTst92"),csv6,"9EFFIIEFF",1);
+gdbd("csv appends stripes 9",proper = len tbl9)
+
+// inserts
+display2 "checking inserts into zipped stripes"
+tmp4: select * from tbl where timedate<1999.01.07,timedate>1999.01.06;
+insert into tbls values tmp4
+cor5: len tbls
+
+insert into tbl4 values tmp4
+gdbd("zip 4 inserts",cor5=len tbl4)
+gdbd("zip 4 maintained on zip","zip"=kerf_type_name flatten xvals select intslowent from tbl4)
+insert into tblv values tmp4
+gdbd("zip V inserts",cor5=len tblv)
+gdbd("zip V maintained on zip","zip"=kerf_type_name flatten xvals select floatlowent from tblv)
+insert into tblw values tmp4
+gdbd("zip W inserts",cor5=len tblw)
+gdbd("zip W maintained on zip","zip"=kerf_type_name flatten xvals select intslowent from tblw)
+insert into tbl0 values tmp4
+gdbd("zip 0 inserts",cor5=len tbl0)
+gdbd("zip 0 maintained on zip","zip"=kerf_type_name flatten xvals select floathighent from tbl0)
+insert into tbld values tmp4
+gdbd("zip D inserts",cor5=len tbld)
+gdbd("zip D maintained on zip","zip"=kerf_type_name flatten xvals select someprices from tbld)
+insert into tbl3 values tmp4
+gdbd("zip 3 inserts",cor5=len tbl3)
+gdbd("zip 3 maintained on zip","zip"=kerf_type_name flatten xvals select strlowent from tbl3)
+insert into tbl9 values tmp4
+gdbd("zip 9 inserts",cor5=len tbl9)
+gdbd("zip 9 maintained on zip","zip"=kerf_type_name flatten xvals select timedate from tbl9)
+
+display2 " check of shuffled 9 stamps"
+tblStamps: tableWeirdStamps(floor MAXROWS/2);
+write_csv_from_table(csv7,tblStamps);
+tblS:create_table_from_csv(namer("00tableTstSTAMPS"),csv7,"99999EFFIIEFF",1);
+gdbd("checking firstcol",len(tblStamps) = sum((flatten xvals select tdsimple from tblS ) = (flatten xvals select tdsimple from tblStamps)))
+gdbd("checking reversed col",len(tblStamps) = sum((flatten xvals select tsreversed from tblS ) = (flatten xvals select tsreversed from tblStamps)))
+gdbd("checking 4 way",len(tblStamps) = sum((flatten xvals select tmp4way from tblS ) = (flatten xvals select tmp4way from tblStamps)))
+gdbd("checking 4 way rev",len(tblStamps) = sum((flatten xvals select tmp4wayrev from tblS ) = (flatten xvals select tmp4wayrev from tblStamps)))
+gdbd("checking 4 way shuffle",len(tblStamps) = sum((flatten xvals select tmp4wayrand from tblS ) = (flatten xvals select tmp4wayrand from tblStamps)))
+
+cor8: len select tmp4way from tblStamps where tmp4wayrev>1999.01.01T10:44:39.000
+cor9: len select tmp4way from tblStamps where tmp4wayrand>1999.01.01T10:44:39.000
+gdbd("striped reverse select ",cor8=len select tmp4way from tblS where tmp4wayrev>1999.01.01T10:44:39.000)
+gdbd("striped shuffle select ",cor9=len select tmp4way from tblS where tmp4wayrand>1999.01.01T10:44:39.000)
+
+
+//display2 xvals sizeDir("00tableTst2/","ZEFFIIEFF")
+//display2 xvals sizeDir("00tableTst42/","ZEFF44EFF")
+//display2 xvals sizeDir("00tableTstV2/","ZEVV44SVV")
+//display2 xvals sizeDir("00tableTstW2/","ZEFFWWEFF")
+//display2 xvals sizeDir("00tableTst02/","ZEFFWWE00")
+//display2 xvals sizeDir("00tableTstd2/","ZEDDIIEFF")
+//display2 xvals sizeDir("00tableTst32/","Z3FFII3FF")
+//display2 xvals sizeDir("00tableTst92/","9EFFIIEFF")
+
+display2 "writing global error check"
+if(!.SILENT) {
+ write_to_path(namer("00stripeErrDUMP"),.Err);
+}
+display2 "printing global error check"
+display2 .Err
+
+
+display implode("",[string(sum(  .Err['0'])), " correct out of ", string(len(.Err['0']))," tests on stripe tables"])
+
+exit 0
+

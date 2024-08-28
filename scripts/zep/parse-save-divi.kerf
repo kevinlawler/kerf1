@@ -1,0 +1,11 @@
+filename: './incoming/ZDIV_H-1.csv'
+.Parse.strptime_format: '%Y-%m-%d'
+divi: read_table_from_csv(filename,"EZFF" ,1)
+//dividends are AAPL_H so drop _H to get AAPL
+divi: select enum -2 drop mapright code as sym, * from divi //create sym column to match closes table
+
+//Restrict to dividends that have occurred
+divi: select from divi where EX_DATE <= NOW_DATE()
+
+divi: sort divi
+write_to_path('./tables/divisort.table',divi)

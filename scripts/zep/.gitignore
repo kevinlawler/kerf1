@@ -1,0 +1,14 @@
+#OSX
+.DS_Store
+
+#scripts
+startup.kerf
+
+#tables
+*.table
+
+#dat
+*.csv
+*.psv
+*.tsv
+

@@ -1,0 +1,99 @@
+//open server: ./kerf_test -p 1234
+//     client: ./kerf_test scripts/test/wire/wire-unit.kerf 
+load("scripts/test/stripes/stripe-helper.kerf");
+stringthing: {[n, s] s[rand(n,len(s))]}
+.SILENT: "silent"= .Argv[2];
+// TODO make this test silent/verbose like the other test scripts using gdbd
+
+zeros: {[x] (0.0*^x) + \> 0.0*^x} 
+randmx: {[x] rand \> \> 1 + zeros x}
+
+display2 "open socket"
+s: open_socket("localhost","1234")
+display2 "socket open, sending lists"
+lst: range 99
+display2  ["sending async list",send_async(s,"a:$1+1", [lst])]
+display2 ["BAD!!!","good"][(99 = sum send_sync(s,"a")=(1+ range(99)))]
+
+display2 "sending sync list"
+lst: range 1e4
+send_sync(s, "a:$1", [lst]);
+display2 flatten ["sync list send",["BAD!!!","good"][send_sync(s,"checksum a" )=checksum lst]]
+
+// display2 ["send some randoms",send_sync(s,"b:rand(100,1.0)")]
+// display2 send_sync(s,"checksum b" )
+
+tb: tablePayload(1000);
+ mp: mapPayload(1000);
+// at: atlasPayload(1000);
+ mx: randmx(1000);
+
+
+display2 "sending sync table"
+ send_sync(s,"tbr:$1",[tb]);
+display2 "sending sync map"
+ send_sync(s,"mpr:$1",[mp]);
+// display2 "sending sync atlas"
+//  send_sync(s,"atr:$1",[at]);
+// display2 "sending sync matrix"
+ send_sync(s,"mxr:$1",[mx]); 
+
+
+display2 "sending async table"
+ send_async(s,"tbra:$1",[tb])
+display2 "sending async map"
+ send_async(s,"mpra:$1",[mp])
+// display2 "sending async atlas"
+//  send_async(s,"atra:$1",[at])
+// display2 "sending async matrix"
+ send_async(s,"mxra:$1",[mx]) 
+
+ synctest: [send_sync(s,"checksum tbr")
+ 	   send_sync(s,"checksum mpr")
+// 	   send_sync(s,"checksum atr")
+ 	   send_sync(s,"checksum mxr")
+ 	   send_sync(s,"checksum meta_table tbr")]
+
+ asynctest: [ send_sync(s,"checksum tbra")
+ 	    send_sync(s,"checksum mpra")
+// 	    send_sync(s,"checksum atra")
+ 	    send_sync(s,"checksum mxra")
+ 	    send_sync(s,"checksum meta_table tbra")]
+
+ hometest: [ checksum tb
+ 	   checksum mp
+// 	   checksum at
+ 	   checksum mx
+ 	   checksum meta_table tb]
+
+gdbd(["synchronous send checksum tests"],synctest=hometest)
+// display2 flatten [["synchronous send checksum tests"],["BAD!!!","good"][synctest = hometest]]
+
+gdbd(["asynchronous send checksum tests"],asynctest = hometest)
+
+// send two sets of stripes
+display2 "sending striped table overwritten"
+send_sync(s,"myStripe:{{a:range(10000),b:(1+range(10000)),c:(1997.05.01 + 1h10i9s times mapright range(10000))}};newStrp:write_striped_to_path(\"junk\",myStripe);")
+send_sync(s,"myStripe:{{a:range(10000),b:(1+range(10000)),c:(1997.05.01 + 1h10i9s times mapright range(10000))}};newStrp:write_striped_to_path(\"junk\",myStripe);")
+
+gdbd("striped table test ", 10000=send_sync(s,"sum(flatten xvals select b-a from newStrp)"))
+gdbd("unstriped table test ", 10000=send_sync(s,"sum(flatten xvals select b-a from myStripe)"))
+
+
+
+display2 "sending garbage for json evaluation"
+gdbd("garbage json eval",7=kerf_type(send_sync(s,"1 + \"a\"")))
+gdbd("remote Kerf still alive after sending junk ",7=kerf_type(send_sync(s,"1 + \"a\"")))
+
+
+// send a weird function
+send_async(s, "def tblsOnDisk(){ts: tables() mymeta: {[x] }  }")
+gdbd("kerf process still alive after async send of bad fn ", 2=send_sync(s,"1+1"))
+send_sync(s, "def tblsOnDisk(){ts: tables() mymeta: {[x] }  }")
+gdbd("kerf process still alive after sync send of bad fn ", 2=send_sync(s,"1+1"))
+
+display implode("",[string(sum(  .Err['0'])), " correct out of ", string(len(.Err['0']))," tests on wire-unit tests "])
+// send_async(s,"exit 0") // kill remote
+
+exit 0
+

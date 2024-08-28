@@ -1,0 +1,101 @@
+// notes: as set up
+load("stripe-helper.kerf")
+.Parse.strptime_format: "%Y.%m.%dT%H:%M:%S.000"
+timing(1)
+nrows: 20000000  // mytestrows is 20426204 
+stringsize: 6 //8 givess 3.1G file
+// MYTEST issue WWEWWWWEEEEEEWWWWWWEWW
+tmp:{{}}
+{[x] tmp[implode("",["int",rep(x)])]:  10500 + rand(nrows,1000);} mapright range(2);
+{[x] tmp[implode("",["string",rep(x)])]: randstr3(nrows,"fhijk",stringsize);} mapright range(1);
+{[x] tmp[implode("",["int",rep(x)])]: 3420090 + rand(nrows,9000);}  mapright 2+ range(4);
+{[x] tmp[implode("",["string",rep(x)])]:  randstr3(nrows,"abcde",stringsize);} mapright 1 + range(6);
+{[x] tmp[implode("",["int",rep(x)])]: 10348+ rand(nrows,1000);}  mapright 6 +range(6);
+{[x] tmp[implode("",["string",rep(x)])]: randstr3(nrows,"vsqpr",stringsize);} mapright 7+ range(1);
+{[x] tmp[implode("",["int",rep(x)])]: 24576 + rand(nrows,1500);}  mapright 12 + range(2);
+write_csv_from_table("mytest.csv",tmp) // 100krows is 25s write, 18meg ... takes an hour to write a mytest sized file!
+//    85 m 27 s to be exact for 8 byte string
+
+// KeRF> KeRF> KeRF> scandir path: BIntsCOMP
+// scandir: No such file or directory
+// scandir path: BIntsCOMP
+// scandir: No such file or directory
+// Failed to open directory object.
+
+//  Size error
+
+// KeRF> KeRF> scandir path: BIntsCOMP
+// scandir: No such file or directory
+// scandir path: BIntsCOMP
+// scandir: No such file or directory
+// Failed to open directory object.
+
+// Process kerf segmentation fault
+timing(1)
+comp: create_table_from_csv("BIntsCOMP","mytest.csv","WWEWWWWEEEEEEWWWWWWEWW",1)
+timing(1)
+uncomp: create_table_from_csv("BIntsUnCOMP","mytest.csv","IIEIIIIEEEEEEIIIIIIEII",1)
+timing(1)
+comp4: create_table_from_csv("BIntsCOMP4","mytest.csv","44E4444EEEEEE444444E44",1)
+
+timing(1)
+uncomp1: create_table_from_csv("BIntsUnCOMP1intcol","mytest.csv","I*********************",1)
+
+timing(1)
+comp1: create_table_from_csv("BIntsCOMP1intcol","mytest.csv","W*********************",1)
+
+timing(1)
+comp2: create_table_from_csv("BIntsCOMP2intcol","mytest.csv","WW********************",1)
+
+timing(1)
+justEnum: create_table_from_csv("JustEnum1","mytest.csv","**E*******************",1)
+
+timing(1)
+justEnum: create_table_from_csv("JustEnum2","mytest.csv","*******EE*************",1)
+
+timing(1)
+justEnum: create_table_from_csv("JustEnum2o","mytest.csv","**E****E**************",1)
+
+timing(1)
+justEnum: create_table_from_csv("JustComp4bt1","mytest.csv","4*********************",1)
+
+timing(1)
+justEnum: create_table_from_csv("JustComp4bt1","mytest.csv","44********************",1)
+
+
+timing(1)
+justEnum: create_table_from_csv("Comp4bt2en1","mytest.csv","44E*******************",1)
+
+timing(1)
+justEnum: create_table_from_csv("Comp4bt2","mytest.csv","********************44",1)
+
+timing(1)
+justEnum: create_table_from_csv("Comp4bt2H","mytest.csv","***44*****************",1) //  note these columns have more randoms/uniques, are also larger
+
+timing(1)
+tmp: read_table_from_csv("mytest.csv","IISIIIISSSSSSIIIIIISII",1) // raw strings
+// no can do.
+
+tmp: read_table_from_csv("mytest-half.csv","IISIIIISSSSSSIIIIIISII",1) // raw strings
+
+tmp: read_table_from_csv("mytest-quarter.csv","IISIIIISSSSSSIIIIIISII",1) // raw strings
+
+// try writing over tmp to see if memory is released, or if we get to swap hell
+tmp: read_table_from_csv("mytest-quarter.csv","IIEIIIIEEEEEEIIIIIIEII",1) // raw strings
+write_csv_from_table("testout.csv",tmp)
+
+// ~/src/kerf-source/scripts/test/stripes $ ls -lh mytest*-rw-r--r-- 1 scott scott 2.8G May  6 00:47 mytest.csv
+// -rw-r--r-- 1 scott scott 1.4G May  6 15:20 mytest-half.csv
+// -rw-r--r-- 1 scott scott 706M May  6 15:28 mytest-quarter.csv
+
+tmp: read_table_from_csv("mytest.csv","IIEIIIIEEEEEEIIIIIIEII",1) // read enums
+
+
+
+
+
+
+
+
+
+

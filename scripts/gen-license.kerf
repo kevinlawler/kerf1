@@ -1,0 +1,28 @@
+//do not share
+//how to generate kerf-license.dat
+
+if(len(.Argv) < 5) {
+  out 'Bad #args: need, eg ./kerf gen-license.kerf "TheCustomer Name" "3m" "mytempfilename.txt" \n'
+  exit(1);
+}
+
+customer:      .Argv[2 + 0]
+duration: eval(.Argv[2 + 1])
+filename:      .Argv[2 + 2]
+
+expiry: now()['date'] + duration 
+
+premap: {'customer':customer, 'expiry': expiry}
+deliver: premap
+
+premap['kerf']: 82349792832925
+verifier: checksum premap
+
+deliver['sign']: verifier
+
+str: '\u00ae\u00af' xor uneval deliver
+
+write_to_path(filename, str)
+
+exit(0)
+

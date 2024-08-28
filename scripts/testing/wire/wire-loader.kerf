@@ -1,0 +1,43 @@
+// this will send dumb commands to load and query csv files remotely.
+load("scripts/test/stripes/stripe-helper.kerf");
+//load("stripe-helper.kerf");
+.SILENT: "silent"= .Argv[2];
+
+s: open_socket("localhost","1234")
+display2 "sending over commands to make tables"
+send_sync(s,"load(\"scripts/test/stripes/stripe-helper.kerf\")")
+send_sync(s,"csv1: 'test.csv';MAXROWS: 10000;.Parse.strptime_format: '%Y.%m.%dT%H:%M:%S.000'")
+send_sync(s,"tbl: tableGeneral(MAXROWS);")
+send_sync(s,"write_csv_from_table(csv1,tbl)")
+send_sync(s,"tblcrazy:create_table_from_csv('00tableTst4',csv1,'Z3FDW4EV0',1);")
+display2 "remote tables created"
+gdbd("return strings count W",4989=send_sync(s,"len select strlowent from tblcrazy where intshighent>50000"))
+gdbd("return count D",4996=send_sync(s,"len select strlowent from tblcrazy where somebasis<50"))
+gdbd("timedate count",1892=send_sync(s,"len select strlowent from tblcrazy where timedate<1999.01.04"))
+gdbd("count D",2049=len send_sync(s," select someprices from tblcrazy where someprices>400"))
+gdbd("return D check",2049 = sum((flatten xvals send_sync(s," select someprices from tblcrazy where someprices>400")) = (flatten xvals send_sync(s," select someprices from tblcrazy where someprices>400"))))
+gdbd("W ints check",2049 = sum((flatten xvals send_sync(s," select intslowent from tblcrazy where someprices>400")) = (flatten xvals send_sync(s," select intslowent from tblcrazy where someprices>400"))))
+gdbd("4 ints check",2049 = sum((flatten xvals send_sync(s," select intshighent from tblcrazy where someprices>400")) = (flatten xvals send_sync(s," select intshighent from tblcrazy where someprices>400"))))
+gdbd("select * check",10 = len send_sync(s,"10 take select * from tblcrazy")) // this should be tested for time as well
+
+// cleanup annoying csv/table files
+send_sync(s,"tblcrazy:''")
+send_sync(s,"shell(\"rm test.csv\")")
+send_sync(s,"shell(\"rm -fr 00tableTst4\")")
+
+// comment this out if you want to test stuff; note seems to make a leak in
+// kerf_test, but I think it is OK; just doesn't dereference the string
+// before exiting
+send_async(s,"exit(0);")
+
+display2 "writing global error check"
+if(!.SILENT) {
+write_to_path("00wire-loadErrDUMP",.Err);
+}
+display2 "printing global error check"
+display2 .Err
+
+display implode("",[string(sum(  .Err['0'])), " correct out of ", string(len(.Err['0']))," tests on wire-write "])
+
+exit 0
+

@@ -1,0 +1,56 @@
+// missing update, delete, disk, ingestion
+
+load("scripts/test/stripes/stripe-helper.kerf");
+.SILENT: "silent"= .Argv[2];
+display2 "simple stuff"
+at1:atlasIntMaker(10)
+gdbd(["simple query1 "], [10]=flatten xvals select count(a) from at1)
+gdbd(["simple query 2"], ["a"] = flatten xvals select first(e) from at1)
+gdbd(["simple query 3"],[6.3]=flatten xvals select avg(c) from at1)
+gdbd(["simple query 4"],[31,1] = flatten xvals select a from at1 where c=6)
+gdbd(["simple query 5"],[37.4]=flatten xvals select avg(a+b) from at1)
+
+
+a: {[ {a:1,b:2}, {b:4,c:5}, {b:{d:6,e:7}} ]}; 
+gdbd("select where query 1",atlas({b:4, c:5}) = select from a where 3<b)
+gdbd("select where query 2", atlas({a:1, b:2}) = select from a where b>1, 4 > b)
+
+
+a: {[ {a:1,b:2}, {b:4,c:5}, {b:{d:6,e:7}} ]}; 
+gdbd("select where query 3",atlas({a:1, b:2}) = select from a where (b>1) & (a=1))
+
+
+a: {[ {c:1,b:4}, {b:4,c:10}, {c:11, b:5} ]}; 
+gdbd(["multiple select"],[4, 4, 5, 1, 10, 11, 4, 4, 5] = flatten xvals select b,c,b from a)
+gdbd(["sum aggregate 1"], [13,22] = flatten xvals select sum(b), sum(c) from a)
+gdbd(["sum aggregate 2"],[22] = flatten xvals select first c1 from (select b,c, sum(b), sum(c) from a))
+
+
+a: {[ {a:1,b:2}, {b:4,c:5}, {b:{d:6,e:{a:7,q:0}}} ]}; 
+gdbd("subkey atlas 1",atlas({b:{d:6, e:{a:7, q:0}}}) = select from a where b.e.a==7 )
+a: {[ {a:1,b:2}, {b:4,c:5}, {b:{d:6,e:7}} ]}; 
+gdbd("sub key atlas 2", atlas({b:{d:6, e:7}}) = select from a where b.d==6)
+
+a: {[ {c:10,b:4,a:1}, {b:4,c:10,a:2}, {c:11, b:5,a:3} ]}; 
+gdbd(["group by sum"],[4, 5, 10, 11, 3, 3] = flatten xvals select sum(a) from a group by b,c)
+gdbd(["group by where"],[4, 5, 10, 11, 2, 3] = flatten xvals select sum(a) from a group by b,c where a>=2)
+
+display2 "generating a bigger atlas"
+atl: atlasMaker(1000)
+atlb: atlasMaker(1000)
+gdbd("checking atlas equality",atl=atlb) // presently takes the system down
+gdbd(["selecting min values from atlas"],[0.0] = flatten xvals select min(b) from atl)
+
+
+display2 "writing global error check"
+if(!.SILENT) {
+ write_to_path(namer("00stripeErrDUMP"),.Err);
+}
+display2 "printing global error check"
+display2 .Err
+
+// final output line for silent mode
+display implode("",[string(sum(  .Err['0'])), " correct out of ", string(len(.Err['0']))," tests on simple atlas tests"])
+
+exit 0
+

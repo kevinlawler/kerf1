@@ -1,0 +1,29 @@
+randstr: {[n,st] seed_prng(n); {[x] rand(x,st)} mapright repeat(n,len(st)) }
+stringthing: {[n, s] s[rand(n,len(s))]}
+
+function makeTable(n) {
+         {{timedate: 1999.01.01 + 2i2s times mapright range(n),
+     	     strings: stringthing(n,["sorted", "baloney","stuff","on","a"]),
+             prices: (0.1*n - rand(n,0.1*n)) }}}
+
+tbl: makeTable(10000);
+
+write_csv_from_table("bug.csv",tbl);
+
+tblm: read_table_from_csv("bug.csv","ZSF",1);
+tbls: create_table_from_csv("bug","bug.csv","ZSF",1);
+
+update tbl set ma5=mavg(4,prices) group by strings; // good
+update tblm set ma5=mavg(4,prices) group by strings; // good
+update tbls set ma5=mavg(4,prices) group by strings; // BAD!
+// creates a null column when try this
+update tbls set ma5=mavg(4,prices) group by strings; // now I can write to it
+
+// related:
+update tbl set prices=compressed prices
+kerf_type_name flatten xvals select prices from tbl
+tbl['prices']: compressed flatten xvals select prices from tbl
+kerf_type_name flatten xvals select prices from tbl
+
+update tbls set prices=compressed prices
+kerf_type_name flatten xvals select prices from tbl  // on the other hand, this works

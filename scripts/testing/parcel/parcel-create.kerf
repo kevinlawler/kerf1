@@ -1,0 +1,40 @@
+// this creates a small table, persists it, then persist-parcels it by date
+// can add something to do the parcel by a string if that is needed later.
+
+load("scripts/test/stripes/stripe-helper.kerf");
+DATADIR: "scripts/test/parcel/datadir/";
+PARCELDIR: "scripts/test/parcel/datadir/parcel/";
+mkdir(DATADIR);
+mkdir(PARCELDIR);
+.Parcel.Table:{tablename:'myparcel',path:PARCELDIR,subtables:0}
+NROW: 10000 //makes 6 days; good ratio
+
+//########################################################################//
+// keep helper functions in this file, since they probably won't be used elsewhere
+
+// returns chunked table by day for tablePayload, keyed by day
+def chunkByDay(x) {
+ days: unique extract select bars(1d,sometimes) from x;
+ return {[y] {dy:format_stamp("%Y.%m.%d",y), 
+              tb:x[which(bars(1d,x['sometimes'])=y)]}} mapright days;
+}
+
+pname: {[x],implode("/",[PARCELDIR,x])} ;
+
+// writes out the parcels created by chunks
+def writeByDay(x) {
+return {[y] write_striped_to_path(pname(x[y]['dy']),x[y]['tb']);x[y]['dy']} mapright range(len(x));
+}
+
+//########################################################################//
+// create a PARCEL, and stripe the original table
+tbl:tablePayload(NROW); 
+keys: xkeys(tbl) except ["sorttimes"];
+tbl: tbl[keys];
+tbl: write_striped_to_path(namer("00originalTable"),tbl);
+
+chunks: chunkByDay(tbl);    // make the chunks
+.Parcel.Table['subtables']: writeByDay(chunks);  // write the chunks, save their loc
+write_to_path(pname("parcel.meta"), .Parcel.Table);
+
+exit 0

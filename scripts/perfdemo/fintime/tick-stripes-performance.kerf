@@ -1,0 +1,123 @@
+DATADIR:'/data/kerf/perfdemo-stripes'
+namer: {[x],implode("/",[DATADIR,x])}
+// From Shasha website
+// For Tick Databases, the scale factor is also the number of securities, assuming 100 ticks per security per day and 90 days of history. 
+// For the purposes of this benchmark we will assume that the system monitors ticks on 1,000, 10,000 or 100,000 securities, where each represents a different scale factor.
+outp:{{}} // write as we go
+tickPerf:read_from_path('tickPerfOut.table') //persist anyway
+
+tickBase:read_striped_from_path(namer("TBF"))
+tickPrice:read_striped_from_path(namer("TPF"))
+timing(1)
+// two ways to select here
+tic: now()
+
+LASTDAY: (flatten xvals select max(TradeDate) from tickPrice)[0]
+FIRSTDAY:(flatten xvals select min(TradeDate) from tickPrice)[0]
+FIRSTDAYLATE: (flatten xvals select max(DateTime) from tickPrice where TradeDate=LASTDAY)[0]
+FIRSTDAY3H: FIRSTDAYLATE - 3h
+
+// 1. [X] Get all ticks for a specified set of 100 securities for a specified
+//    three hour time period on a specified trade date.
+
+// for one Id
+// tickers: flatten xvals first(10,select unique Id from tickBase)
+// select  Id,TradePrice,TradeSize,DateTime from tickPrice where Id=tickers[1],Type='T',DateTime<FIRSTDAYLATE,DateTime>FIRSTDAY3H
+
+
+// // for first 10 tickers
+// tickers: flatten xvals first(10,select unique Id from tickBase)
+// b: select  Id,TradePrice,TradeSize,DateTime from tickPrice where Id in tickers,Type='T',DateTime>FIRSTDAY3H,DateTime<FIRSTDAYLATE
+
+
+// for 100
+st:now()
+tickers: flatten xvals first(100,select unique Id from tickBase)
+b: select  Id,TradePrice,TradeSize,DateTime from tickPrice where Id in tickers,Type='T',DateTime>FIRSTDAY3H,DateTime<FIRSTDAYLATE
+ed:now()
+outp['bench1']: stamp_diff(ed,st)
+
+// 2. [X] Determine the volume weighted price of a security considering only
+//   the ticks in a specified three hour interval
+
+///select avg TradePrice  from tickPrice where Id='Security_1',Type='T',DateTime>FIRSTDAY3H,DateTime<FIRSTDAYLATE
+
+st:now()
+ select avg (TradePrice * TradeSize)/ avg(TradeSize) from tickPrice where Id='Security_1',Type='T',DateTime>FIRSTDAY3H,DateTime<FIRSTDAYLATE
+ed:now()
+outp['bench2']: stamp_diff(ed,st)
+// security 0?
+// select avg TradePrice  from tickPrice where Id='Security_0',Type='T',DateTime>FIRSTDAY3H,DateTime<FIRSTDAYLATE
+
+
+// select avg (TradePrice * TradeSize)/ avg(TradeSize) from tickPrice where Id='Security_0',Type='T',DateTime>FIRSTDAY3H,DateTime<FIRSTDAYLATE
+
+
+
+//3. [X]  Determine the top 10 percentage losers for the specified date on
+   // the specified exchanges sorted by percentage loss. The loss is
+   // calculated as a percentage of the last trade price of the previous
+   // day.
+
+st:now()
+exky:select Id,Ex from tickBase // exchange key
+fd:select last(TimeStamp),(last TradePrice) from tickPrice where TradeDate=FIRSTDAY,Type='T' group by Id
+sd:select last(TimeStamp),(last TradePrice) from tickPrice where TradeDate=(FIRSTDAY + 1d),Type='T' group by Id
+losers:left_join(fd,sd,"Id")
+losers['pctloss']: (losers['TradePrice'] - losers['TradePrice1'])/losers['TradePrice']
+report: select Id,pctloss,Ex from left_join(losers, exky, "Id") 
+select * from report[ascend select pctloss from report] group by Ex
+ed:now()
+outp['bench3']: stamp_diff(ed,st)
+
+// Q has an fby thing; look at it
+// virtual column i -nice expose
+
+// 4. [X]  Determine the top 10 most active stocks for a specified date sorted
+//    by cumulative trade volume by considering all trades
+st:now()
+td:select TradeSize,Id from tickPrice where Type='T',TradeDate=FIRSTDAY + 1d
+tv: select sum(TradeSize) as Volume from td group by Id
+first(10,tv[descend select  Volume from tv])
+ed:now()
+outp['bench4']: stamp_diff(ed,st)
+
+//  5. [X] Find the most active stocks in the COMPUTER industry (use SIC code)
+// this is unclear. 
+// Most active for a day?
+st:now()
+td:select TradeSize,Id from tickPrice where Type='T',TradeDate=FIRSTDAY
+rpt:select sum(TradeSize) from td where Id in (flatten xvals (select Id from tickBase where SIC='COMPUTERS')) group by Id
+rpt[descend select TradeSize from rpt]
+// or most active in general for whole time period?
+cptrs: select sum(TradeSize) from (select TradeSize,Id from tickPrice where Id in (flatten xvals (select Id from tickBase where SIC='COMPUTERS'))) group by Id
+cptrs[descend select TradeSize from cptrs]
+ed:now()
+outp['bench5']: stamp_diff(ed,st)
+
+// 6. [X] Find the 10 stocks with the highest percentage spreads. Spread is
+//   the difference between the last ask-price and the last
+//   bid-price. Percentage spread is calculated as a percentage of the
+//   mid-point price (average of ask and bid price).
+st:now()
+bids: select Id,DateTime,BidPrice,BidSize from tickPrice where BidPrice!=0,Type='Q'
+asks: select Id,DateTime,AskPrice,AskSize from tickPrice where AskPrice!=0,Type='Q'
+spread: select (BidPrice - AskPrice)/(0.5*(BidPrice + AskPrice)) as pctspread,Id from asof_join(bids,asks,"Id","DateTime") 
+
+first(10,spread[descend select pctspread from spread]) // max 10 spreads
+first(10,left_join((select unique Id from spread), (spread[descend select pctspread from spread]),"Id")) // what they're asking for with the stocks
+ed:now()
+outp['bench6']: stamp_diff(ed,st)
+
+end: now()
+
+// elapsed time in seconds
+display stamp_diff(end,tic)/1e9
+outp['total']: stamp_diff(end,tic)
+outp['completed']: now()
+display outp
+
+write_to_path(flatten(['tickPerfout', string(now()), '.table']), outp)
+
+insert into tickPerf values outp
+write_to_path('tickPerfOut.table',tickPerf)

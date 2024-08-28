@@ -1,0 +1,415 @@
+//Example command line:
+//  ./kerf run-backtest.kerf 2014.01.01 "NOW()"
+//
+
+if(len(.Argv) < 4) {
+  out 'Bad #args: needs dates, eg ./kerf run-backtest.kerf 2014.01.01 "NOW()" \n'
+  exit(1);
+}
+
+out 'Starting backtest...\n'
+
+load 'load-table-all.kerf'
+
+start_timing: NOW()
+
+args: last(2, .Argv)
+begin_date: eval(args[0])['date']
+end_date:   eval(args[1])['date']
+
+data_begin_date: begin_date - 2y;
+data_yr_date: begin_date - 1y;
+data_yr_bgn_date: data_yr_date - 5d;
+
+out "Using data start date: " # string(data_begin_date) # "\n"
+out "Using start date:      " # string(begin_date)      # "\n"
+out "And end date:          " # string(end_date)        # "\n"
+
+//To find exact end date for the 252 trading days from begin_date, this allows for easier mpf12 in momentum
+aapl_dates: select date from zep where sym = "AAPL", date >= begin_date
+shifted_dates: shift(-252, aapl_dates)
+shifted_dates: shifted_dates['date']
+end_date: first shifted_dates
+
+//The days we want blocks of results for
+desired_days: (select distinct date from zep where sym='AAPL', date >= begin_date, date <= end_date)['date']
+
+//Limit company universe
+reduced: select distinct TICKER from zfb where PER_END_DATE >= data_yr_date
+zfb: select from zfb where TICKER in reduced['TICKER']
+
+divi: select from divi where EX_DATE >= data_begin_date, EX_DATE <= end_date 
+zfb:  select from zfb where PER_END_DATE >= data_begin_date, PER_END_DATE <= end_date 
+zep:  select from zep where date >= data_begin_date, date <= end_date
+
+data_universe: intersect(zep['sym'], zfb['TICKER'])
+
+divi: select from divi where sym in data_universe
+zfb:  select from zfb where TICKER in data_universe
+
+zep:  select from zep where sym in data_universe
+zep:  select sym, date, close from zep
+
+//Sort tables for speed
+divi: sort divi
+zfb:  sort zfb
+zep:  sort zep
+
+//Perform dividend adjustment calculuation
+divi_close: asof_join(divi, zep, ['sym'], {'EX_DATE':'date'})
+
+//Put a floor date on the dividends so we can asof join backwards in time by shifting down 1
+divi_early: select min date as EX_DATE, 0.0 as DIV_AMT, 0.0 as close from zep group by sym
+divi_floor: select sym, EX_DATE, DIV_AMT, close from divi_close
+insert into divi_floor values divi_early
+divi_floor: sort divi_floor
+
+divcalc:{[x,y,z] a:(y+x*z)/y; if(a=nan){x}else{a}}\\;
+div_adj_ratio: flatten last xvals select reverse times unfold reverse shift(-1, reverse divcalc(1, reverse DIV_AMT, reverse close), 1.0) from divi_floor group by sym
+divi_adj: select sym, EX_DATE as date, DIV_AMT, div_adj_ratio as DIV_ADJ_RATIO from divi_floor
+
+zep_divi: asof_join(zep, divi_adj, ['sym'], ['date'])
+zep_divi['DIV_AMT']       ifnull:  0.0
+zep_divi['DIV_ADJ_RATIO'] ifnull:  1.0
+zep_divi: select sym, date, close/DIV_ADJ_RATIO as close_adj from zep_divi
+zep: null; 
+
+close_universe: select * from zep_divi where date = begin_date;
+
+//Restrict to Quarterly reports
+zfb_quart: select from zfb where PER_TYPE='Q'
+
+quart_universe: asof_join(close_universe, zfb_quart, {'sym':'TICKER'}, {'date':'PER_END_DATE'})
+big_enough: select from quart_universe where (COMM_SHARES_OUT * close_adj) >= 200
+
+big_enough_universe: distinct(big_enough['sym']);
+past_year_universe_tickers: select distinct sym from zep_divi where date >= data_yr_bgn_date, date <= data_yr_date;
+pyut_list: past_year_universe_tickers['sym'];
+matched_past: intersect(big_enough_universe, pyut_list);
+
+result_universe: matched_past;
+
+
+if(0==count(result_universe)) {
+  out 'Warning, zero sized result universe.\n'
+  exit(1);
+}
+
+//Add derived zfb data to our working zfb tables
+
+//Compute trailing twelve months (ttm) values using moving sums
+cash_flow_qd_q:  flatten last xvals select msum(4, CASH_FLOW_OPER_ACTIVITY_QD)     from zfb_quart group by TICKER
+net_change_qd_q: flatten last xvals select msum(4, NET_CHANGE_PROP_PLANT_EQUIP_QD) from zfb_quart group by TICKER
+tot_revnu_q_t:   flatten last xvals select msum(4, TOT_REVNU)                      from zfb_quart group by TICKER
+ebitda_q_t:      flatten last xvals select msum(4, EBITDA)                         from zfb_quart group by TICKER
+
+zfb_quart_plus: select *, cash_flow_qd_q as CASH_FLOW_QD_Q, net_change_qd_q as NET_CHANGE_QD_Q, tot_revnu_q_t as TOT_REVNU_Q, ebitda_q_t as EBITDA_Q from zfb_quart
+
+//asof join ZEP daily data to ZFB quarterly data to
+//add the "day of" snapshot when the quarterly report was released
+//zfb_dayof: asof_join(zfb_quart_plus, zep_divi, {'TICKER':'sym'}, {'PER_END_DATE':'date'})
+
+easy: select sym as TICKER, date as PER_END_DATE, close_adj from zep_divi
+zfb_dayof: asof_join(easy, zfb_quart_plus, ['TICKER'], ['PER_END_DATE'])
+delete from easy;
+
+delete from zfb_dayof where ZACKS_SECTOR_CODE = NAN
+
+//Add ENT_V and FCF to the calculation
+added_ready: select *, (close_adj * COMM_SHARES_OUT) + (TOT_LTERM_DEBT + CURR_PORTION_DEBT) - CASH_STERM_INVST as ENT_V, (close_adj * COMM_SHARES_OUT) as MARKET_CAP, CASH_FLOW_QD_Q - NET_CHANGE_QD_Q as FCF from zfb_dayof
+
+delete from zfb_dayof;
+
+//Put the ttm values together into a table
+trailing: select TICKER, PER_END_DATE, ZACKS_SECTOR_CODE, TOT_REVNU_Q, EBITDA_Q, FCF as FCF_Q, ENT_V, MARKET_CAP from added_ready
+
+//Compute value metrics using ENT_V
+//val_metrics: select TICKER, PER_END_DATE, ZACKS_SECTOR_CODE, TOT_REVNU_Q/ENT_V as SALES_YIELD, EBITDA_Q / ENT_V as EARN_YIELD, FCF_Q/ENT_V as FCF_YIELD from trailing
+
+//Compute value metrics using MARKET_CAP
+val_metrics: select TICKER, PER_END_DATE, ZACKS_SECTOR_CODE, TOT_REVNU_Q/MARKET_CAP as SALES_YIELD, EBITDA_Q / MARKET_CAP as EARN_YIELD, FCF_Q/MARKET_CAP as FCF_YIELD from trailing
+
+d: distinct val_metrics.PER_END_DATE
+t: distinct val_metrics.TICKER
+a:{{}}; a[['PER_END_DATE','TICKER']]: transpose flatten d join mapleft mapright (enlist mapright t)
+b: asof_join(a, val_metrics, ['TICKER'], ['PER_END_DATE'])
+
+// using median instead of avg
+sector_averages_values: select median SALES_YIELD as SALES_YIELD_AVG, median EARN_YIELD as EARN_YIELD_AVG, median FCF_YIELD as FCF_YIELD_AVG from b group by PER_END_DATE, ZACKS_SECTOR_CODE where ZACKS_SECTOR_CODE != NAN, ABS(SALES_YIELD) != inf, ABS(EARN_YIELD) != inf, ABS(FCF_YIELD) != inf
+
+values_with_avgs: asof_join(val_metrics, sector_averages_values, ['ZACKS_SECTOR_CODE'], ['PER_END_DATE'])
+
+values_adj: select *, SALES_YIELD - SALES_YIELD_AVG as SALES_YIELD_ADJ, EARN_YIELD - EARN_YIELD_AVG as EARN_YIELD_ADJ, FCF_YIELD - FCF_YIELD_AVG as FCF_YIELD_ADJ from values_with_avgs
+
+//Compute momentum
+def pchange(data, back) {
+  p: shift(back, data, 0.0)
+  return (data - p)/p
+}
+
+def pchange_rel(data, back0, back1) {
+  p: shift(back0, data, 0.0)
+  q: shift(back1, data, 0.0)
+  return (q - p)/p
+}
+
+def pchange_fut(data, forward) {
+	p: shift(-forward, data, 0.0)
+	return (p - data)/data
+}
+
+
+month: 21 //days
+
+//find 6 month future date by shifting on AAPL's trading days by 6 months
+aapl_dates: select date from zep_divi where sym = "AAPL", date >= begin_date
+shifted_dates: shift(-126, aapl_dates)
+shifted_dates: shifted_dates['date']
+six_month_date: first shifted_dates
+
+//find 12 month future date by shifting on AAPL's trading days by 12 months
+aapl_dates: select date from zep_divi where sym = "AAPL", date >= begin_date
+shifted_dates: shift(-252, aapl_dates)
+shifted_dates: shifted_dates['date']
+twelve_month_date: first shifted_dates
+
+//high52week: flatten last xvals select 3 mmax close_adj from zep_divi group by sym 
+high52week: flatten last xvals select 250 mmax close_adj from zep_divi group by sym
+
+//Create new table to find last prices as_of 6 months ago
+six_month_price: select from zep_divi where date >= begin_date, date <= six_month_date
+update six_month_price set lp6=last(close_adj) group by sym
+
+//Join new table with zep_divi to use in momentum calculations
+zep_divi: asof_join(zep_divi, six_month_price, ['sym'], ['date'])
+
+//Find and store last trading prices for all stocks for 12 month future returns
+update zep_divi set lp=last(close_adj) group by sym
+
+momentum: select *, pchange(close_adj, 2) as dp2, pchange(close_adj, 1*month) as mp1, pchange(close_adj, 3*month) as mp3, pchange_rel(close_adj, 6*month, 1*month) as mp6, pchange_rel(close_adj, 12*month, 1*month) as mp12, pchange_rel(close_adj, 12*month, 6*month) as mp6p, (close_adj - high52week)/high52week as chg52wk, pchange_fut(close_adj, 1*month) as mpf1, pchange_fut(close_adj, 3*month) as mpf3, (lp6 - close_adj)/close_adj as mpf6, (lp - close_adj)/close_adj as mpf12 from zep_divi
+
+high52week: null
+
+ticker_sectors: sort select TICKER, ZACKS_SECTOR_CODE from (select 1 from zfb group by TICKER, ZACKS_SECTOR_CODE)
+
+momentum_sectors: left_join(momentum, ticker_sectors, {'sym':'TICKER'})
+
+momentum_sectors: select from momentum_sectors where ZACKS_SECTOR_CODE != NAN
+
+momentum_avgs: select avg(dp2) as dp2_savg, avg(mp1) as mp1_avg, avg(mp3) as mp3_savg, avg(mp6) as mp6_savg, avg(mp12) as mp12_savg, avg(mp6p) as mp6p_savg, avg(chg52wk) as chg52wk_savg from momentum_sectors group by ZACKS_SECTOR_CODE, date where ZACKS_SECTOR_CODE != NAN, ABS(dp2) != inf, ABS(mp3) != inf, ABS(mp6) != inf, ABS(mp12) != inf, ABS(mp6p) != inf, ABS(chg52wk) != inf
+
+momentum_avgs: sort momentum_avgs
+
+momentum_with_avgs: asof_join(momentum_sectors, momentum_avgs, ['ZACKS_SECTOR_CODE'], ['date'])
+
+momentum_adj: select *, dp2 - dp2_savg as dp2_adj, mp1 - mp1_savg as mp1_adj, mp3 - mp3_savg as mp3_adj, mp6 - mp6_savg as mp6_adj, mp12 - mp12_savg as mp12_adj, mp6p - mp6p_savg as mp6p_adj, chg52wk - chg52wk_savg as chg52wk_adj from momentum_with_avgs
+
+bb_yield:                     flatten last xvals select (COMM_SHARES_OUT - y)/y:shift(4,COMM_SHARES_OUT) from zfb_quart group by TICKER
+consol_net_income_loss_q:     flatten last xvals select msum(4, CONSOL_NET_INCOME_LOSS)     from zfb_quart group by TICKER
+cash_flow_oper_activity_qd_q: flatten last xvals select msum(4, CASH_FLOW_OPER_ACTIVITY_QD) from zfb_quart group by TICKER
+tot_asset_q:                  flatten last xvals select msum(4, TOT_ASSET)                  from zfb_quart group by TICKER 
+tot_share_holder_equity_q:    flatten last xvals select msum(4, TOT_SHARE_HOLDER_EQUITY)    from zfb_quart group by TICKER
+
+//quality metrics
+quality: select TICKER, ZACKS_SECTOR_CODE, PER_END_DATE, bb_yield as BUYBACK_YIELD, (consol_net_income_loss_q - cash_flow_oper_activity_qd_q)/( tot_asset_q / mcount(4, tot_asset_q) ) as EARNINGS_ACCRUALS, consol_net_income_loss_q / (tot_share_holder_equity_q / mcount(4,tot_share_holder_equity_q)) as RETURN_ON_EQUITY from zfb_quart
+
+d: distinct quality.PER_END_DATE
+t: distinct quality.TICKER
+a:{{}}; a[['date','sym']]: transpose flatten d join mapleft mapright (enlist mapright t)
+b: asof_join(a, quality, {'sym':'TICKER'}, {'date':'PER_END_DATE'})
+
+sector_averages_quality: select avg BUYBACK_YIELD as BUYBACK_YIELD_AVG, avg EARNINGS_ACCRUALS as EARNINGS_ACCRUALS_AVG, avg RETURN_ON_EQUITY as RETURN_ON_EQUITY_AVG from b group by date, ZACKS_SECTOR_CODE where ZACKS_SECTOR_CODE != NAN, ABS(BUYBACK_YIELD) != inf, ABS(EARNINGS_ACCRUALS) != inf, ABS(RETURN_ON_EQUITY) != inf
+
+d:null
+t:null
+a:null
+b:null
+
+quality_with_avgs: asof_join(quality, sector_averages_quality, ['ZACKS_SECTOR_CODE'], {PER_END_DATE:'date'})
+
+quality_adj: select *, BUYBACK_YIELD - BUYBACK_YIELD_AVG as BUYBACK_YIELD_ADJ, EARNINGS_ACCRUALS - EARNINGS_ACCRUALS_AVG as EARNINGS_ACCRUALS_ADJ, RETURN_ON_EQUITY - RETURN_ON_EQUITY_AVG as RETURN_ON_EQUITY_ADJ from quality_with_avgs
+
+ebitda_ev_rate: [-.04035, -.04694, -.03124, -.01414, -.00774, .00166, .01426, .02936, .04336, .05176]
+fcf_ev_rate:    [-.04168, -.03262, -.02356, -.01450, -.00544, .00362, .01268, .02174, .03080, .04892]
+sales_ev_rate:  [-.04922, -.03852, -.02782, -.01712, -.00642, .00428, .01498, .02568, .03638, .05778]
+ 
+//mike todo: replace m1 sub-scores with not-copied-from-m3-sub-scores (I don't have)
+m1_price_rate:  [    0.0,     0.0,     0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0]
+m3_price_rate:  [-.03149, -.00974, -.00650, -.00320, -.00001, .00322, .00646, .00969, .01292, .01865]
+m6_price_rate:  [-.04583, -.02023, -.01353, -.00653, -.00323, .00007, .00707, .01367, .02337, .04517]
+m9_price_rate:  [-.04422, -.01591, -.01093, -.00590, -.00087, .00416, .00919, .01422, .01921, .03105]
+
+buyback_rate:   [.03242, .01522, .00972, .00762,  .00032, -.00057, .00572, -.00128, -.02318, -.04599]
+earnings_rate:  [.02491, .02121, .02061,  .01501,  .00641, .00641, .00581, -.00259, -.02519, -.07259]
+return_eq_rate: [-.02665, -.01715, -.00555, -.00255,  .00325, .00025, .00465, .00685, .01575, .02115]
+
+def pcntile(col) {
+  floor((100.0 * col)/count(col))
+}
+
+def mikepcntile(col) {
+  (100.0 * col)/count(col)
+}
+
+def mscore(basket, ptile_col) {
+  basket[bucketed(count(basket), ptile_col)] 
+}
+
+def score_day(day) {
+
+  //Create an empty table
+  target:{{}};
+
+  //Add two columns, the same date all the way down with each of the tickers
+  target[['date','sym']]: transpose day join mapright (enlist mapright result_universe)
+
+  //Values
+  //Asof join the last good data
+  daily: asof_join(target, values_adj, {'sym':'TICKER'}, {'date':'PER_END_DATE'})
+
+  daily_test: select * from daily where date = begin_date;
+
+  //Write values_daily to CSV
+  //write_csv_from_table('value_daily_test.csv', daily_test);
+
+  //Grab just the values
+  daily_no_avgs: select date, sym, ZACKS_SECTOR_CODE, SALES_YIELD, EARN_YIELD, FCF_YIELD from daily_test;
+  
+  //Compute averages on these values
+  sector_averages_mike: select median SALES_YIELD as SALES_YIELD_AVG_MIKE, median EARN_YIELD as EARN_YIELD_AVG_MIKE, median FCF_YIELD as FCF_YIELD_AVG_MIKE from daily_no_avgs group by date, ZACKS_SECTOR_CODE;
+
+  //Asof join the sector_averages and daily tables
+  values_with_avgs_mike: asof_join(daily_no_avgs, sector_averages_mike, ['ZACKS_SECTOR_CODE'], ['date']);
+
+  // Calculate the adjusted_values
+  values_adj_mike: select *, SALES_YIELD - SALES_YIELD_AVG_MIKE as SALES_YIELD_ADJ_MIKE, EARN_YIELD - EARN_YIELD_AVG_MIKE as EARN_YIELD_ADJ_MIKE, FCF_YIELD - FCF_YIELD_AVG_MIKE as FCF_YIELD_ADJ_MIKE from values_with_avgs_mike;
+  
+  //write_csv_from_table('values_ajdusted_mike.csv', values_adj_mike);
+
+  graded: select *, order SALES_YIELD as SY_ORDER, order EARN_YIELD as EY_ORDER, order FCF_YIELD as FY_ORDER, order SALES_YIELD_ADJ_MIKE as SY_ADJ_ORDER, order EARN_YIELD_ADJ_MIKE as EY_ADJ_ORDER, order FCF_YIELD_ADJ_MIKE as FY_ADJ_ORDER from values_adj_mike;
+
+  //Added mikepcntile to show the percentiles (non-rounded down); don't need, just for demonstration purposes
+  values_ptile: select *, pcntile(SY_ORDER) as SY_PTILE, mikepcntile(SY_ORDER) as SY_PTILE_MIKE, pcntile(EY_ORDER) as EY_PTILE, mikepcntile(EY_ORDER) as EY_PTILE_MIKE, pcntile(FY_ORDER) as FY_PTILE, mikepcntile(FY_ORDER) as FY_PTILE_MIKE, pcntile(SY_ADJ_ORDER) as SY_ADJ_PTILE, mikepcntile(SY_ADJ_ORDER) as SY_ADJ_PTILE_MIKE, pcntile(EY_ADJ_ORDER) as EY_ADJ_PTILE, mikepcntile(EY_ADJ_ORDER) as EY_ADJ_PTILE_MIKE, pcntile(FY_ADJ_ORDER) as FY_ADJ_PTILE, mikepcntile(FY_ADJ_ORDER) as FY_ADJ_PTILE_MIKE from graded;
+
+  values_test: select date, sym, SALES_YIELD, EARN_YIELD, FCF_YIELD, SALES_YIELD_AVG_MIKE, EARN_YIELD_AVG_MIKE, FCF_YIELD_AVG_MIKE, SALES_YIELD_ADJ_MIKE, EARN_YIELD_ADJ_MIKE, FCF_YIELD_ADJ_MIKE, SY_PTILE_MIKE, EY_PTILE_MIKE, FY_PTILE_MIKE, SY_ADJ_PTILE_MIKE, EY_ADJ_PTILE_MIKE, FY_ADJ_PTILE_MIKE from values_ptile where date = begin_date;
+
+  //Write values_scored to CSV
+  write_csv_from_table('value_ptile_test.csv', values_test);
+
+  values_scored: select sym, date, mscore(sales_ev_rate, SY_PTILE) as SY_SCORE, mscore(ebitda_ev_rate, EY_PTILE) as EY_SCORE, mscore(fcf_ev_rate, FY_PTILE) as FY_SCORE from values_ptile;
+
+  //Momentum
+  daily: asof_join(target, momentum_adj, ['sym'], ['date']);
+
+  //daily_test: select * from daily where date = begin_date;
+
+  //Write momentum_scored to CSV
+  //write_csv_from_table('momentum_daily.csv', daily_test);
+ 
+  graded: select date, sym, close_adj, mp1, mp3, mp6, mp12, mp6p, chg52wk, mpf1, mpf3, mpf6, mpf12, order mp1 as mp1_order, order mp3 as mp3_order, order mp6 as mp6_order, order mp12 as mp12_order, order mp6p as mp6p_order, order chg52wk  as chg52wk_order from daily;
+ 
+  momentum_ptile: select *, pcntile(mp1_order) as mp1_ptile, mikepcntile(mp1_order) as mp1_ptile_mike, pcntile(mp3_order) as mp3_ptile, mikepcntile(mp3_order) as mp3_ptile_mike, pcntile(mp6_order) as mp6_ptile, mikepcntile(mp6_order) as mp6_ptile_mike, pcntile(mp12_order) as mp12_ptile, mikepcntile(mp12_order) as mp12_ptile_mike, pcntile(mp6p_order) as mp6p_ptile, mikepcntile(mp6p_order) as mp6p_ptile_mike, pcntile(chg52wk_order) as chg52wk_ptile, mikepcntile(chg52wk_order) as chg52wk_ptile_mike from graded;
+
+  momentum_test: select date, sym, close_adj, mp1, mp3, mp6, mp12, mp6p, chg52wk, mpf1, mpf3, mpf6, mpf12, mp1_ptile_mike, mp3_ptile_mike, mp6_ptile_mike, mp12_ptile_mike, mp6p_ptile_mike, chg52wk_ptile_mike from momentum_ptile where date = begin_date;
+
+  //Write momentum_scored to CSV
+  write_csv_from_table('momentum_ptile_test.csv', momentum_test);
+ 
+  momentum_scored: select sym, date, mscore(m1_price_rate,mp1_ptile) as m1_score, mscore(m3_price_rate, mp3_ptile) as m3_score,  mscore(m6_price_rate, mp6_ptile) as m6_score, mscore(m9_price_rate, mp12_ptile) as m9_score from momentum_ptile;
+
+  //Quality
+  daily: asof_join(target, quality_adj, {'sym':'TICKER'}, {'date':'PER_END_DATE'})
+
+  daily_test: select * from daily where date = begin_date;
+
+  //Write quality_daily to CSV
+  //write_csv_from_table('quality_daily_test.csv', daily_test);
+
+  //Grab just the values
+  daily_no_avgs: select date, sym, ZACKS_SECTOR_CODE, BUYBACK_YIELD, EARNINGS_ACCRUALS, RETURN_ON_EQUITY from daily_test;
+  
+  //Compute averages on these values
+  sector_averages_mike: select median BUYBACK_YIELD as BUYBACK_YIELD_AVG_MIKE, median EARNINGS_ACCRUALS as EARNINGS_ACCRUALS_AVG_MIKE, median RETURN_ON_EQUITY as RETURN_ON_EQUITY_AVG_MIKE from daily_no_avgs group by date, ZACKS_SECTOR_CODE;
+
+  //Asof join the sector_averages and daily tables
+  quality_with_avgs_mike: asof_join(daily_no_avgs, sector_averages_mike, ['ZACKS_SECTOR_CODE'], ['date']);
+
+  // Calculate the adjusted_values
+  quality_adj_mike: select *, BUYBACK_YIELD - BUYBACK_YIELD_AVG_MIKE as BUYBACK_YIELD_ADJ_MIKE, EARNINGS_ACCRUALS - EARNINGS_ACCRUALS_AVG_MIKE as EARNINGS_ACCRUALS_ADJ_MIKE, RETURN_ON_EQUITY - RETURN_ON_EQUITY_AVG_MIKE as RETURN_ON_EQUITY_ADJ_MIKE from quality_with_avgs_mike;
+  
+  //write_csv_from_table('quality_ajdusted_mike.csv', quality_adj_mike);
+  
+  graded: select *, order BUYBACK_YIELD as BY_ORDER, order EARNINGS_ACCRUALS as EA_ORDER, order RETURN_ON_EQUITY as RE_ORDER, order BUYBACK_YIELD_ADJ_MIKE as BY_ADJ_ORDER, order EARNINGS_ACCRUALS_ADJ_MIKE  as EA_ADJ_ORDER, order RETURN_ON_EQUITY_ADJ_MIKE as RE_ADJ_ORDER from quality_adj_mike;
+  
+  quality_ptile: select *, pcntile(BY_ORDER) as BY_PTILE, pcntile(EA_ORDER) as EA_PTILE, pcntile(RE_ORDER) as RE_PTILE, pcntile(BY_ADJ_ORDER) as BY_ADJ_PTILE, pcntile(EA_ADJ_ORDER) as EA_ADJ_PTILE, pcntile(RE_ADJ_ORDER) as RE_ADJ_PTILE from graded;
+
+  quality_test: select * from quality_ptile where date = begin_date;
+
+  //Write quality_scored to CSV
+  write_csv_from_table('quality_ptile_test.csv', quality_test);
+  
+  quality_scored: select sym,date, mscore(buyback_rate, BY_PTILE) as BY_SCORE, mscore(earnings_rate, EA_PTILE) as EA_SCORE, mscore(return_eq_rate, RE_PTILE) as RE_SCORE from quality_ptile;
+
+  //Score Tables, Individual
+  value_piece:    select sym, date, SY_SCORE + EY_SCORE + FY_SCORE as value_score from values_scored;
+  momentum_piece: select sym, date, m1_score + m3_score + m6_score + m9_score as momentum_score from momentum_scored;
+  quality_piece:  select sym, date, BY_SCORE + EA_SCORE + RE_SCORE as quality_score from quality_scored;
+  
+  //Final Table
+  day_final_table: select date, sym, value_score from value_piece;
+  day_final_table: sort day_final_table;
+  day_final_table: left_join(day_final_table, momentum_piece, ['date','sym']);
+  day_final_table: left_join(day_final_table, quality_piece,  ['date','sym']);
+  day_final_table: select sym, date, value_score + momentum_score + quality_score as total_score, value_score, momentum_score, quality_score from day_final_table;
+
+  return day_final_table;
+}
+
+//day_final_table: score_day(end_date)
+
+all_final: {{}};
+
+//for(i:0; i < count(desired_days); i: i + 1) {
+
+  //day: desired_days[i];
+  //temp: score_day(day);
+
+  //insert into all_final values temp;
+//}
+
+begin_date_table: score_day(begin_date);
+
+
+//Write Output
+//write_csv_from_table('scored.csv', begin_date_table)
+
+//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+//TODO
+//todo_quality_metrics:            1
+//todo_add_sector_id_code:         1
+//todo_DEBT_changes:               1
+//todo_sector_averages_value:      1
+//todo_sector_adj_metric_value:    1
+//todo_sector_averages_momentum:   1
+//todo_sector_adj_metric_momentum: 1
+//todo_sector_averages_quality:    1
+//todo_sector_adj_metric_quality:  1
+//todo_mp6p:                       1
+//todo_closeness:                  1
+//todo_metric_rankings:            1
+//todo_metric_weightings:          1
+//todo_restrict_stock_universe:    1
+//todo_dividend_backprop:          1
+//todo_clean_zero_data:            1
+//todo_aapl_ebitda_zero:           1
+//todo_cash_flow_N_net_chg:        1
+////////////////////////////////////
+//todo_daily_values_zep:           1
+//todo_daily_quality_zep:          1
+//todo_finalized_output_table:     1
+//todo_finalized_table_sort:       1
+//todo_final_table_csv_write:      1
+//todo_score_multiple_days:        1
+
+elapsed: floor(stamp_diff(NOW(), start_timing) / pow(10,9))
+out "Backtest calculations took " # string(elapsed) # " seconds\n"

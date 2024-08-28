@@ -1,0 +1,114 @@
+// Taken from http://kx.com/a/k/examples/stat.k
+// aggregations
+// avg:{(+/x)%#x}
+average:{[x] add fold x / count x}
+
+def average2(x){
+ sm: add fold x	
+ sm / count(x)
+}
+
+function average3(x){
+ sum(x) / count(x)
+}
+
+average4:{[x] + \/ x / count x}
+average5:{[x] sum(x) / count(x)}
+average6:{[x] + fold x / count x}
+
+// var:{avg[x*x]-a*a:avg x}
+// population variance
+variance: {[x] a:avg(x); avg(x*x) - a*a}
+def variance2(x) {
+a:avg(x)
+avg(x*x) - a*a
+}
+
+
+
+def mstd(n,x) {
+    a:mavg(n,x);
+    return sqrt(mavg(n,x*x) - a*a)
+}
+
+
+def mstd(n,x) {
+    a:mavg(n,x);
+    norm: sqrt(n/n-1);
+    return norm * sqrt((mavg(n,x*x) - a*a))
+}
+
+mstd2: {[n,x] sqrt mavg(n,x*x) -a*a:mavg(n,x)}
+
+variance3:{[x] avg(x*x) -a*a:avg x}
+
+
+// dev:{_sqrt var x}
+dev:{[x] sqrt var x}
+
+// cov:{avg[x*y]-avg[x]*avg y}
+cov:{[x,y] avg(x*y) - (avg(x) * avg(y))}
+
+	 
+// cor:{cov[x;y]%dev[x]*dev y}
+cor:{[x,y] cov(x,y) / dev(x) * dev(y)}
+
+// ut:{[f;x]:[1=#x;,,1.0;(,1.0,r),(r:f[*x]'y),'_f[f]y:1_ x]}
+
+// / uniform moving window
+// avgs:{[n;x]x-(-n)_(((n-1)#0n),0.0),x:+\x%n}
+
+// vars:{[n;x]avgs[n;x*x]-a*a:avgs[n;x]}
+// devs:{[n;x]_sqrt vars[n;x]}
+// covs:{[n;x;y]avgs[n;x*y]-avgs[n;x]*avgs[n;y]}
+// cors:{[n;x;y]covs[n;x;y]%devs[n;x]*devs[n;y]}
+
+// / autocorrelation
+// aut:{(+/*':x)%+/x*x-:avg x}
+
+// / weighted average
+// wavg:{(+/x*y)%+/x}
+wavg:{[x,y] (+ fold x * y) / (+ fold x)} 
+
+// / median
+// med:{.5*+/x(<x)@_.5*-1 0+#x}
+
+// / x random weighted by y
+// skew:{(+\y%+/y)_binl x _draw 0}
+
+// pi:3.14159265358979323846
+
+// / normal distribution, e.g. nor[10]
+// nor:{[n]if[n!2;:-1__f n+1];t:_sqrt-2*_log *u:2 -1#n _draw 0;(t*_sin x),t*_cos x:(2*pi)**|u}
+
+// / normal cumulative Abramowitz & Stegun 26.2.17
+// nc:{_abs(x>0)-(_exp[-.5*x*x]%_sqrt 2*pi)*t*.31938153+t*-0.356563782+t*1.781477937+t*-1.821255978+1.330274429*t:%1+.2316419*_abs x}
+nc:{[x] 
+ pi: 3.14159265358979323846
+ t: 1/ 1 + 0.2316419 * abs x
+ abs(x>0) - (exp(-.5*x*x)/sqrt 2*pi)*t*.31938153+t*-0.356563782+t*1.781477937+t*-1.821255978+1.330274429*t
+}
+
+// / black scholes (- v's for puts)
+// bs:{[s;x;t;r;v](s*nc h+v)-x*_exp[-r]*nc h:((_log[s%x]+r*:t)%v)-.5*v*:_sqrt t}
+// s:60;x:65;t:.25;r:.08;v:.3
+// bs[s;x;t;r;-v]
+// \ not right yet; doesn't work in K either.
+black_scholes:{[s,x,t,r,v] 
+h:((log(s/x)+r*:t)/v)-.5*v*:sqrt t
+(s*erf( h+v))-x*exp[-r]*erf( h)
+}
+def black_scholes(s,k,r,tau,sigma) {
+ d1:  (log(s/k) + (r + 0.5*sigma*sigma)*tau)/(sigma * sqrt(tau))
+ d2: d1 - sigma * sqrt(tau)
+ s * erf(d1) - k * exp(-r*tau) * erf(d2)
+}
+
+// / spearman
+// spear:{1-(6*+/d*d:(<x)-<y)%(n^3)-n:#x}
+// / spearman matrix, e.g. sm 100 22 _draw 0
+// sm:{1-(6*+/''d*d:x-\:/:x:<:'x)%(n^3)-n:#*x}
+
+// / great circle nautical miles (68.7 to 69.4 miles per degree)
+// gcm:{rm:(%m:180*60%pi)*60 _sv;m*_acos(_sin[x]*_sin y)+_cos[x:rm x 0]*_cos[y:rm y 0]*_cos(rm x 1)-rm y 1}
+// gcm[lax:(33 57;118 24)]jfk:(40 38;73 47)
