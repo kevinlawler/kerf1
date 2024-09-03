@@ -106,14 +106,14 @@ jobs:
     needs: [build-macos, build-linux]
     steps:
       - name: Download macOS artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         continue-on-error: true
         with:
           name: kerf-macOS
           path: output
 
       - name: Download Linux artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         continue-on-error: true
         with:
           name: kerf-linux
